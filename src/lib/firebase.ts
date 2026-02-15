@@ -4,9 +4,14 @@ import {
   signInAnonymously,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  OAuthProvider,
+  updateProfile,
   type Auth,
+  type User,
 } from 'firebase/auth'
-import { getFirestore, type Firestore } from 'firebase/firestore'
+import { getFirestore, doc, setDoc, type Firestore } from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -54,6 +59,46 @@ export async function signInWithEmail(email: string, password: string) {
 export async function signUpWithEmail(email: string, password: string) {
   if (!auth) return null
   const { user } = await createUserWithEmailAndPassword(auth, email, password)
+  return user
+}
+
+export async function signUpWithProfile(
+  email: string,
+  password: string,
+  displayName?: string,
+  phone?: string
+): Promise<User | null> {
+  if (!auth) return null
+  const { user } = await createUserWithEmailAndPassword(auth, email, password)
+  if (displayName) {
+    await updateProfile(user, { displayName })
+  }
+  if (db && (phone || displayName)) {
+    try {
+      await setDoc(doc(db, 'users', user.uid), {
+        displayName: displayName ?? '',
+        phone: phone ?? '',
+        email: user.email ?? email,
+        createdAt: new Date().toISOString(),
+      })
+    } catch {
+      // Firestore may not be set up or rules may deny; auth still succeeds
+    }
+  }
+  return user
+}
+
+export async function signInWithGoogle() {
+  if (!auth) return null
+  const provider = new GoogleAuthProvider()
+  const { user } = await signInWithPopup(auth, provider)
+  return user
+}
+
+export async function signInWithApple() {
+  if (!auth) return null
+  const provider = new OAuthProvider('apple.com')
+  const { user } = await signInWithPopup(auth, provider)
   return user
 }
 
