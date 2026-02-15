@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .glass {
+    @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-glass;
+  }
+
+  .glass-dark {
+    @apply bg-white/50 backdrop-blur-2xl border border-white/30 shadow-glass-lg;
+  }
+
+  .glass-card {
+    @apply bg-white/60 backdrop-blur-lg border border-white/50 shadow-card;
+  }
+
+  /* 页面抬头：无背景框、左对齐、与对话框区分 */
+  .page-header {
+    @apply text-left pl-2 pr-2;
+  }
+
+  .page-header-title {
+    @apply text-2xl font-bold tracking-tight text-calm-900;
+  }
+
+  .page-header-desc {
+    @apply text-base text-calm-700/90 mt-1 leading-relaxed;
+  }
+
+  /* 区块标题：在 bubble 外，加大加粗，前有 icon */
+  .section-title {
+    @apply flex items-center gap-2 text-lg font-bold text-slate-800 mb-3;
+  }
+}
+
+body {
+  @apply font-sans antialiased text-slate-800 min-h-screen;
+}
+
+.app-bg {
+  background-color: #f0f7ff;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(12, 142, 230, 0.12), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 60%, rgba(0, 112, 196, 0.06), transparent),
+    radial-gradient(ellipse 50% 30% at 0% 80%, rgba(54, 170, 245, 0.08), transparent),
+    linear-gradient(180deg, rgba(240, 247, 255, 0.98) 0%, #f8fafc 50%, rgba(232, 245, 240, 0.95) 100%);
+}

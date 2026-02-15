@@ -1,0 +1,143 @@
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { initFirebase, signInAsGuest } from './lib/firebase'
+import { logProgress } from './lib/logging'
+import Step1Auth from './steps/Step1Auth'
+import Step2MessageEditor from './steps/Step2MessageEditor'
+import Step3KitSponsorship from './steps/Step3KitSponsorship'
+import Step4Completion from './steps/Step4Completion'
+
+export type FormState = {
+  step: 1 | 2 | 3 | 4
+  isGuest: boolean
+  userId: string | null
+  partnerName: string
+  testResult: string
+  messageTemplate: 'supportive' | 'direct'
+  messageText: string
+  sponsorKit: boolean
+}
+
+const initialFormState: FormState = {
+  step: 1,
+  isGuest: false,
+  userId: null,
+  partnerName: '',
+  testResult: 'chlamydia',
+  messageTemplate: 'supportive',
+  messageText: '',
+  sponsorKit: false,
+}
+
+function App() {
+  const [form, setForm] = useState<FormState>(initialFormState)
+  const [firebaseReady, setFirebaseReady] = useState(false)
+
+  useEffect(() => {
+    const fb = initFirebase()
+    setFirebaseReady(!!fb)
+  }, [])
+
+  const goToStep = (step: FormState['step']) => {
+    setForm((prev) => ({ ...prev, step }))
+  }
+
+  const updateForm = (updates: Partial<FormState>) => {
+    setForm((prev) => ({ ...prev, ...updates }))
+  }
+
+  const handleGuestContinue = async () => {
+    if (firebaseReady) {
+      const user = await signInAsGuest()
+      if (user) {
+        updateForm({ isGuest: true, userId: user.uid, step: 2 })
+        logProgress(user.uid, 'step_1_guest')
+      } else {
+        updateForm({ isGuest: true, step: 2 })
+      }
+    } else {
+      updateForm({ isGuest: true, step: 2 })
+    }
+  }
+
+  const handleSignInSuccess = (userId: string) => {
+    updateForm({ isGuest: false, userId, step: 2 })
+    logProgress(userId, 'step_1_signin')
+  }
+
+  return (
+    <div className="min-h-screen app-bg">
+      <AnimatePresence mode="wait">
+        {form.step === 1 && (
+          <motion.div
+            key="step1"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Step1Auth
+              onGuestContinue={handleGuestContinue}
+              onSignInSuccess={handleSignInSuccess}
+              firebaseReady={firebaseReady}
+            />
+          </motion.div>
+        )}
+        {form.step === 2 && (
+          <motion.div
+            key="step2"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Step2MessageEditor
+              form={form}
+              updateForm={updateForm}
+              onNext={() => {
+                logProgress(form.userId, 'step_3_start')
+                goToStep(3)
+              }}
+            />
+          </motion.div>
+        )}
+        {form.step === 3 && (
+          <motion.div
+            key="step3"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Step3KitSponsorship
+              form={form}
+              updateForm={updateForm}
+              onNext={() => {
+                logProgress(form.userId, 'step_4_complete')
+                goToStep(4)
+              }}
+            />
+          </motion.div>
+        )}
+        {form.step === 4 && (
+          <motion.div
+            key="step4"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Step4Completion
+              form={form}
+              isGuest={form.isGuest}
+              onLogCopy={() => logProgress(form.userId, 'step_4_copy')}
+              onLogShare={() => logProgress(form.userId, 'step_4_share')}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+export default App
