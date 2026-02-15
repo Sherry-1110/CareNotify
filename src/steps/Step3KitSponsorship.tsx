@@ -48,12 +48,12 @@ export default function Step3KitSponsorship({ form, updateForm, onNext }: Step3K
                 </div>
               </div>
               <p className="text-sm text-slate-600 mt-2">
-                Send them a pre-paid or included testing kit. It shows you care and makes it easier for them to take the next step.
+                Offer to cover the cost of a testing kit so they can get tested at no cost. It shows you care and makes it easier for them to take the next step.
               </p>
               {form.sponsorKit && (
-                <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-xl glass-card text-calm-700">
-                  <span className="text-sm font-medium">Pre-paid / Included</span>
-                </div>
+                <p className="mt-4 text-sm text-calm-700 rounded-xl glass-card px-4 py-3">
+                  You will complete payment in the summary. If they decline the kit, the fee will be refunded to your original payment method.
+                </p>
               )}
             </div>
           </div>

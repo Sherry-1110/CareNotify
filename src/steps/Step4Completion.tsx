@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { CheckCircle2, Copy, MessageCircle, Shield } from 'lucide-react'
+import { Copy, MessageCircle, Share2, Shield } from 'lucide-react'
 import type { FormState } from '../App'
 
 const TEST_LABELS: Record<string, string> = {
@@ -57,21 +57,26 @@ export default function Step4Completion({ form, isGuest, onLogCopy, onLogShare }
         className="flex flex-col items-center space-y-8 w-full text-center"
       >
         <div className="w-20 h-20 rounded-full bg-gradient-to-br from-calm-400/90 to-calm-600 flex items-center justify-center border border-white/40 shadow-soft">
-          <CheckCircle2 className="w-10 h-10 text-white" />
+          <Share2 className="w-10 h-10 text-white" />
         </div>
         <div className="w-full text-center">
-          <h2 className="text-2xl font-bold tracking-tight text-calm-900">You’re all set</h2>
-          <p className="text-base text-calm-700/90 mt-1 leading-relaxed">
-            Copy your message or share it via text or WhatsApp.
+          <h2 className="text-2xl font-bold tracking-tight text-calm-900">You're almost done</h2>
+          <p className="text-sm text-calm-700/90 mt-1 leading-relaxed">
+            You can copy or send your message to your partner using any option below.
+            {form.sponsorKit && ' If you’re sponsoring a kit, you can complete that here when you’re ready.'}
           </p>
         </div>
 
         <div className="w-full space-y-4">
+          <div className="rounded-2xl bg-white/50 backdrop-blur p-4 border border-white/50 text-left">
+            <p className="text-xs font-medium text-slate-500 mb-2">Message preview</p>
+            <p className="text-sm text-slate-700 whitespace-pre-wrap">{messageToShare}</p>
+          </div>
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleCopy}
-            className="w-full flex items-center justify-center gap-3 py-4 px-5 rounded-2xl bg-gradient-primary text-white font-medium shadow-soft border border-white/20 hover:shadow-lg transition-shadow"
+            className="w-full flex items-center justify-center gap-3 py-4 px-5 rounded-2xl bg-white text-slate-700 font-medium shadow-soft border border-slate-200 hover:shadow-lg transition-shadow"
           >
             <Copy className="w-5 h-5" />
             {copied ? 'Copied!' : 'Copy message to clipboard'}
@@ -84,10 +89,10 @@ export default function Step4Completion({ form, isGuest, onLogCopy, onLogShare }
               target="_blank"
               rel="noopener noreferrer"
               onClick={onLogShare}
-              className="flex items-center justify-center gap-2 py-4 px-4 rounded-2xl glass-card text-slate-700 font-medium hover:bg-white/80 transition-all"
+              className="flex items-center justify-center gap-2 py-4 px-4 rounded-2xl bg-[#34C759] text-white font-medium hover:shadow-lg border border-white/20 transition-shadow"
             >
               <MessageCircle className="w-5 h-5" />
-              Text
+              Messages
             </motion.a>
             <motion.a
               whileHover={{ scale: 1.02 }}
@@ -96,11 +101,21 @@ export default function Step4Completion({ form, isGuest, onLogCopy, onLogShare }
               target="_blank"
               rel="noopener noreferrer"
               onClick={onLogShare}
-              className="flex items-center justify-center gap-2 py-4 px-4 rounded-2xl bg-gradient-to-r from-[#25D366] to-[#20BD5A] text-white font-medium hover:shadow-lg border border-white/20 transition-shadow"
+              className="flex items-center justify-center gap-2 py-4 px-4 rounded-2xl bg-[#34C759] text-white font-medium hover:shadow-lg border border-white/20 transition-shadow"
             >
               WhatsApp
             </motion.a>
           </div>
+          {form.sponsorKit && (
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              className="w-full flex items-center justify-center gap-2 py-4 px-5 rounded-2xl bg-blue-500 text-white font-medium hover:bg-blue-600 hover:shadow-lg transition-all border border-blue-600/30"
+            >
+              Pay for kit
+            </motion.button>
+          )}
         </div>
 
         {isGuest && (

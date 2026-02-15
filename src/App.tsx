@@ -47,15 +47,20 @@ function App() {
   }
 
   const handleGuestContinue = async () => {
-    if (firebaseReady) {
-      const user = await signInAsGuest()
-      if (user) {
-        updateForm({ isGuest: true, userId: user.uid, step: 2 })
-        logProgress(user.uid, 'step_1_guest')
+    try {
+      if (firebaseReady) {
+        const user = await signInAsGuest()
+        if (user) {
+          updateForm({ isGuest: true, userId: user.uid, step: 2 })
+          logProgress(user.uid, 'step_1_guest')
+        } else {
+          updateForm({ isGuest: true, step: 2 })
+        }
       } else {
         updateForm({ isGuest: true, step: 2 })
       }
-    } else {
+    } catch {
+      // Anonymous sign-in may be disabled or fail; continue as guest without userId
       updateForm({ isGuest: true, step: 2 })
     }
   }
