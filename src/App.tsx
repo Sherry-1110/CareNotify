@@ -109,6 +109,7 @@ function App() {
                 logProgress(form.userId, 'step_3_start')
                 goToStep(3)
               }}
+              onBack={() => goToStep(1)}
             />
           </motion.div>
         )}
