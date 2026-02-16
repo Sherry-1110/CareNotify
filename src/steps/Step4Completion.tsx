@@ -1,23 +1,23 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Copy, MessageCircle, Share2, Shield } from 'lucide-react'
+import { Copy, MessageCircle, Phone, Share2, Shield } from 'lucide-react'
 import type { FormState } from '../App'
 
 const TEST_LABELS: Record<string, string> = {
   chlamydia: 'Chlamydia',
   gonorrhea: 'Gonorrhea',
-  hiv: 'HIV',
   syphilis: 'Syphilis',
-  other: 'Other',
+  trichomoniasis: 'Trichomoniasis',
+  hiv: 'HIV',
+  hsv_1: 'HSV-1 (Herpes Simplex Virus Type 1)',
+  hsv_2: 'HSV-2 (Herpes Simplex Virus Type 2)',
+  mycoplasma_genitalium: 'Mycoplasma Genitalium',
 }
 
 function getDefaultMessage(form: FormState): string {
   const name = form.partnerName || '[Name]'
-  const test = TEST_LABELS[form.testResult] ?? form.testResult
-  if (form.messageTemplate === 'direct') {
-    return `Hi ${name}, I need to share something important: I tested positive for ${test}. You should get tested as well. Early treatment is available. Let me know if you have questions.`
-  }
-  return `Hey ${name}, I care about us and our health. I recently got tested and my results came back positive for ${test}. I wanted you to know so you can get tested too — it's treatable and we're in this together. Here for you.`
+  const test = TEST_LABELS[form.testResult] ?? 'an STI'
+  return `Hi ${name}, I wanted to let you know I recently tested positive for ${test}. Please get tested when you can. I’m sharing this so we can both take care of our health.`
 }
 
 type Step4CompletionProps = {
@@ -29,9 +29,10 @@ type Step4CompletionProps = {
 
 export default function Step4Completion({ form, isGuest, onLogCopy, onLogShare }: Step4CompletionProps) {
   const [copied, setCopied] = useState(false)
+  const communicationLabel = form.communicationPreference === 'call' ? 'Call' : 'Text'
   const messageToShare = useMemo(
     () => form.messageText.trim() || getDefaultMessage(form),
-    [form.messageText, form.partnerName, form.testResult, form.messageTemplate]
+    [form.messageText, form.partnerName, form.testResult]
   )
 
   const handleCopy = async () => {
@@ -63,6 +64,7 @@ export default function Step4Completion({ form, isGuest, onLogCopy, onLogShare }
           <h2 className="text-2xl font-bold tracking-tight text-calm-900">You're almost done</h2>
           <p className="text-sm text-calm-700/90 mt-1 leading-relaxed">
             You can copy or send your message to your partner using any option below.
+            {' '}Preferred communication: <span className="font-medium">{communicationLabel}</span>.
             {form.sponsorKit && ' If you’re sponsoring a kit, you can complete that here when you’re ready.'}
           </p>
         </div>
@@ -81,31 +83,44 @@ export default function Step4Completion({ form, isGuest, onLogCopy, onLogShare }
             <Copy className="w-5 h-5" />
             {copied ? 'Copied!' : 'Copy message to clipboard'}
           </motion.button>
-          <div className="grid grid-cols-2 gap-3">
+          {form.communicationPreference === 'call' ? (
             <motion.a
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              href={smsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="tel:"
               onClick={onLogShare}
               className="flex items-center justify-center gap-2 py-4 px-4 rounded-2xl bg-[#34C759] text-white font-medium hover:shadow-lg border border-white/20 transition-shadow"
             >
-              <MessageCircle className="w-5 h-5" />
-              Messages
+              <Phone className="w-5 h-5" />
+              Open phone dialer
             </motion.a>
-            <motion.a
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              href={shareUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={onLogShare}
-              className="flex items-center justify-center gap-2 py-4 px-4 rounded-2xl bg-[#34C759] text-white font-medium hover:shadow-lg border border-white/20 transition-shadow"
-            >
-              WhatsApp
-            </motion.a>
-          </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <motion.a
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                href={smsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={onLogShare}
+                className="flex items-center justify-center gap-2 py-4 px-4 rounded-2xl bg-[#34C759] text-white font-medium hover:shadow-lg border border-white/20 transition-shadow"
+              >
+                <MessageCircle className="w-5 h-5" />
+                Messages
+              </motion.a>
+              <motion.a
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                href={shareUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={onLogShare}
+                className="flex items-center justify-center gap-2 py-4 px-4 rounded-2xl bg-[#34C759] text-white font-medium hover:shadow-lg border border-white/20 transition-shadow"
+              >
+                WhatsApp
+              </motion.a>
+            </div>
+          )}
           {form.sponsorKit && (
             <motion.button
               type="button"

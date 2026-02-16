@@ -12,8 +12,11 @@ export type FormState = {
   isGuest: boolean
   userId: string | null
   partnerName: string
+  partnerRelationship: '' | 'current_partner' | 'previous_partner' | 'future_partner'
+  communicationPreference: '' | 'text' | 'call'
   testResult: string
-  messageTemplate: 'supportive' | 'direct'
+  attachmentStyle: '' | 'secure' | 'anxious' | 'avoidant' | 'disorganized'
+  lastInteractionFiles: File[]
   messageText: string
   sponsorKit: boolean
 }
@@ -23,8 +26,11 @@ const initialFormState: FormState = {
   isGuest: false,
   userId: null,
   partnerName: '',
-  testResult: 'chlamydia',
-  messageTemplate: 'supportive',
+  partnerRelationship: '',
+  communicationPreference: '',
+  testResult: '',
+  attachmentStyle: '',
+  lastInteractionFiles: [],
   messageText: '',
   sponsorKit: false,
 }

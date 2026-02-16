@@ -1,34 +1,65 @@
-import { useState, useMemo, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowRight, MessageCircle, Smartphone, User, FlaskConical, ChevronDown, PenLine } from 'lucide-react'
+import { useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ArrowLeft, ArrowRight, FlaskConical, MessageCircle, Phone, Upload, User, X } from 'lucide-react'
+import type { ChangeEvent } from 'react'
 import type { FormState } from '../App'
 
-const TEST_OPTIONS = [
-  { value: 'chlamydia', label: 'Chlamydia' },
-  { value: 'gonorrhea', label: 'Gonorrhea' },
-  { value: 'hiv', label: 'HIV' },
-  { value: 'syphilis', label: 'Syphilis' },
-  { value: 'other', label: 'Other' },
+const RELATIONSHIP_OPTIONS = [
+  {
+    value: 'current_partner',
+    label: 'Current partner',
+    description: 'Someone who you are currently sexually active with.',
+  },
+  {
+    value: 'previous_partner',
+    label: 'Previous partner',
+    description: 'Someone you were sexually active with, but not recently.',
+  },
+  {
+    value: 'future_partner',
+    label: 'Future partner',
+    description: '',
+  },
 ] as const
 
+const COMMUNICATION_OPTIONS = [
+  { value: 'text', label: 'Text', icon: MessageCircle },
+  { value: 'call', label: 'Call', icon: Phone },
+] as const
 
-const SUPPORTIVE_TEMPLATES = [
-  (name: string, test: string) =>
-    `Hey ${name || '[Name]'}, I care about us and our health. I recently got tested and my results came back positive for ${test}. I wanted you to know so you can get tested too — it's treatable and we're in this together. Here for you.`,
-  (name: string, test: string) =>
-    `Hi ${name || '[Name]'}, I got my test results back and they came back positive for ${test}. I wanted to tell you first — I care about you and our health. Getting tested is simple, and treatment is available. I'm here with you.`,
-  (name: string, test: string) =>
-    `${name || '[Name]'}, I need to share something with you. I tested positive for ${test}. I'm sharing this because I care about you and think you should get tested too. We can get through this together; it's treatable.`,
-]
+const DISEASE_OPTIONS = [
+  { value: 'chlamydia', label: 'Chlamydia' },
+  { value: 'gonorrhea', label: 'Gonorrhea' },
+  { value: 'syphilis', label: 'Syphilis' },
+  { value: 'trichomoniasis', label: 'Trichomoniasis' },
+  { value: 'hiv', label: 'HIV' },
+  { value: 'hsv_1', label: 'HSV-1 (Herpes Simplex Virus Type 1)' },
+  { value: 'hsv_2', label: 'HSV-2 (Herpes Simplex Virus Type 2)' },
+  { value: 'mycoplasma_genitalium', label: 'Mycoplasma Genitalium' },
+] as const
 
-const DIRECT_TEMPLATES = [
-  (name: string, test: string) =>
-    `Hi ${name || '[Name]'}, I need to share something important: I tested positive for ${test}. You should get tested as well. Early treatment is available. Let me know if you have questions.`,
-  (name: string, test: string) =>
-    `${name || '[Name]'}, I tested positive for ${test}. Please get tested. Treatment is available and it's important to know your status.`,
-  (_name: string, test: string) =>
-    `Important: I tested positive for ${test}. You need to get tested too. Early treatment is available. Questions? Let me know.`,
-]
+const ATTACHMENT_STYLE_OPTIONS = [
+  {
+    value: 'secure',
+    label: 'Secure',
+    description: 'Comfortable with intimacy and independence.',
+  },
+  {
+    value: 'anxious',
+    label: 'Anxious',
+    description: 'Craving closeness and fearing abandonment.',
+  },
+  {
+    value: 'avoidant',
+    label: 'Avoidant',
+    description: 'Valuing independence and emotionally distant.',
+  },
+  {
+    value: 'disorganized',
+    label: 'Disorganized',
+    description: 'Conflicted and fearful behavior patterns.',
+  },
+] as const
 
 type Step2MessageEditorProps = {
   form: FormState
@@ -37,46 +68,35 @@ type Step2MessageEditorProps = {
 }
 
 export default function Step2MessageEditor({ form, updateForm, onNext }: Step2MessageEditorProps) {
-  const [testSelectOpen, setTestSelectOpen] = useState(false)
-  const testSelectRef = useRef<HTMLDivElement>(null)
+  const [popupStep, setPopupStep] = useState<1 | 2 | 3>(1)
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (testSelectRef.current && !testSelectRef.current.contains(e.target as Node)) {
-        setTestSelectOpen(false)
-      }
+  const canContinue = popupStep === 1
+    ? Boolean(form.partnerName.trim() && form.partnerRelationship && form.communicationPreference)
+    : popupStep === 2
+      ? Boolean(form.testResult)
+      : Boolean(form.attachmentStyle)
+
+  const handleNext = () => {
+    if (!canContinue) return
+    if (popupStep < 3) {
+      setPopupStep((prev) => (prev + 1) as 1 | 2 | 3)
+      return
     }
-    if (testSelectOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [testSelectOpen])
+    onNext()
+  }
 
-  const testLabel = TEST_OPTIONS.find((o) => o.value === form.testResult)?.label ?? form.testResult
-  const supportiveText = useMemo(
-    () => SUPPORTIVE_TEMPLATES[0](form.partnerName, testLabel),
-    [form.partnerName, testLabel]
-  )
-  const directText = useMemo(
-    () => DIRECT_TEMPLATES[0](form.partnerName, testLabel),
-    [form.partnerName, testLabel]
-  )
+  const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
+    const incomingFiles = Array.from(event.target.files ?? [])
+    if (!incomingFiles.length) return
 
-  const previewOptions = useMemo(() => {
-    const name = form.partnerName
-    const test = testLabel
-    return form.messageTemplate === 'supportive'
-      ? SUPPORTIVE_TEMPLATES.map((fn) => fn(name, test))
-      : DIRECT_TEMPLATES.map((fn) => fn(name, test))
-  }, [form.partnerName, form.messageTemplate, testLabel])
+    const merged = [...form.lastInteractionFiles, ...incomingFiles].slice(0, 2)
+    updateForm({ lastInteractionFiles: merged })
+    event.target.value = ''
+  }
 
-  const applyTemplate = (template: 'supportive' | 'direct') => {
-    const options = template === 'supportive'
-      ? SUPPORTIVE_TEMPLATES.map((fn) => fn(form.partnerName, testLabel))
-      : DIRECT_TEMPLATES.map((fn) => fn(form.partnerName, testLabel))
+  const removeFile = (indexToRemove: number) => {
     updateForm({
-      messageTemplate: template,
-      messageText: options[0],
+      lastInteractionFiles: form.lastInteractionFiles.filter((_, index) => index !== indexToRemove),
     })
   }
 
@@ -89,147 +109,235 @@ export default function Step2MessageEditor({ form, updateForm, onNext }: Step2Me
       >
         <div className="page-header">
           <h2 className="page-header-title">Message & partner info</h2>
-          <p className="page-header-desc">Add their name and the test result, then choose a tone.</p>
+          <p className="page-header-desc">Page {popupStep} of 3</p>
         </div>
 
-        <div>
-          <div className="section-title">
-            <User className="w-5 h-5 text-calm-600 shrink-0" />
-            <span>Partner's name or nickname</span>
-          </div>
-          <input
-            type="text"
-            value={form.partnerName}
-            onChange={(e) => updateForm({ partnerName: e.target.value })}
-            placeholder="e.g. Alex"
-            className="w-full px-4 py-3 rounded-2xl bg-white/60 backdrop-blur border border-white/60 focus:border-calm-400 focus:ring-2 focus:ring-calm-200/50 outline-none transition-all"
-          />
-        </div>
-
-        <div className="relative" ref={testSelectRef}>
-          <div className="section-title">
-            <FlaskConical className="w-5 h-5 text-calm-600 shrink-0" />
-            <span>Test result</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setTestSelectOpen((o) => !o)}
-            className="w-full flex items-center justify-between gap-2 px-4 py-3 rounded-2xl bg-white/60 backdrop-blur border border-white/60 hover:border-calm-300/60 focus:border-calm-400 focus:ring-2 focus:ring-calm-200/50 outline-none transition-all text-left"
-          >
-            <span className="text-slate-800">{testLabel}</span>
-            <ChevronDown className={`w-5 h-5 text-slate-500 shrink-0 transition-transform ${testSelectOpen ? 'rotate-180' : ''}`} />
-          </button>
-          <AnimatePresence>
-            {testSelectOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.15 }}
-                className="absolute left-0 right-0 top-full mt-2 z-10 rounded-2xl glass border border-white/50 overflow-hidden shadow-glass-lg"
-              >
-                {TEST_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => {
-                      updateForm({ testResult: opt.value })
-                      setTestSelectOpen(false)
-                    }}
-                    className={`w-full flex items-center px-4 py-3 text-left transition-colors ${form.testResult === opt.value ? 'bg-calm-100/80 text-calm-800 font-medium' : 'hover:bg-white/60 text-slate-700'}`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        <div>
-          <div className="section-title">
-            <MessageCircle className="w-5 h-5 text-calm-600 shrink-0" />
-            <span>Message tone</span>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <motion.button
-              whileTap={{ scale: 0.98 }}
-              onClick={() => applyTemplate('supportive')}
-              className={`py-3 px-4 rounded-2xl text-left transition-all border ${
-                form.messageTemplate === 'supportive'
-                  ? 'border-calm-400/80 bg-gradient-to-br from-calm-50 to-calm-100/80 text-calm-800 shadow-soft'
-                  : 'border-white/50 bg-white/40 backdrop-blur text-slate-600 hover:bg-white/60'
+        <div className="grid grid-cols-3 gap-2">
+          {[1, 2, 3].map((dot) => (
+            <div
+              key={dot}
+              className={`h-2 rounded-full transition-all ${
+                dot <= popupStep ? 'bg-calm-500' : 'bg-slate-200'
               }`}
-            >
-              <span className="font-medium text-sm">Supportive / Soft</span>
-              <p className="text-xs mt-1 text-slate-500 line-clamp-2">Warm, caring tone</p>
-            </motion.button>
-            <motion.button
-              whileTap={{ scale: 0.98 }}
-              onClick={() => applyTemplate('direct')}
-              className={`py-3 px-4 rounded-2xl text-left transition-all border ${
-                form.messageTemplate === 'direct'
-                  ? 'border-calm-400/80 bg-gradient-to-br from-calm-50 to-calm-100/80 text-calm-800 shadow-soft'
-                  : 'border-white/50 bg-white/40 backdrop-blur text-slate-600 hover:bg-white/60'
-              }`}
-            >
-              <span className="font-medium text-sm">Direct / Informative</span>
-              <p className="text-xs mt-1 text-slate-500 line-clamp-2">Clear and factual</p>
-            </motion.button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div className="sm:col-span-2">
-            <div className="section-title">
-              <Smartphone className="w-5 h-5 text-calm-600 shrink-0" />
-              <span>Preview</span>
-            </div>
-            <div className="space-y-3 w-full">
-              {previewOptions.map((text, i) => {
-                const isSelected = form.messageText === text
-                return (
-                  <motion.button
-                    key={i}
-                    type="button"
-                    whileTap={{ scale: 0.99 }}
-                    onClick={() => updateForm({ messageText: text })}
-                    className={`w-full text-left rounded-2xl bg-white/50 backdrop-blur p-4 min-h-[80px] border transition-all ${
-                      isSelected
-                        ? 'border-calm-400 ring-2 ring-calm-200/60'
-                        : 'border-white/50 hover:border-calm-200/70 hover:bg-white/60'
-                    }`}
-                  >
-                    <p className="text-sm text-slate-700 whitespace-pre-wrap line-clamp-4">{text}</p>
-                  </motion.button>
-                )
-              })}
-            </div>
-          </div>
-          <div className="sm:col-span-2">
-            <div className="section-title">
-              <PenLine className="w-5 h-5 text-calm-600 shrink-0" />
-              <span>Edit your message</span>
-            </div>
-            <textarea
-              value={form.messageText}
-              onChange={(e) => updateForm({ messageText: e.target.value })}
-              placeholder={form.messageTemplate === 'supportive' ? supportiveText : directText}
-              rows={5}
-              className="w-full px-4 py-3 rounded-2xl bg-white/60 backdrop-blur border border-white/60 focus:border-calm-400 focus:ring-2 focus:ring-calm-200/50 outline-none resize-y min-h-[120px]"
             />
-          </div>
+          ))}
         </div>
 
-        <motion.button
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
-          onClick={onNext}
-          className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-primary text-white font-medium shadow-soft border border-white/20 hover:shadow-lg transition-shadow"
-        >
-          Continue
-          <ArrowRight className="w-5 h-5" />
-        </motion.button>
+        <AnimatePresence mode="wait">
+          {popupStep === 1 && (
+            <motion.div
+              key="popup-1"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-6"
+            >
+              <div>
+                <div className="section-title">
+                  <User className="w-5 h-5 text-calm-600 shrink-0" />
+                  <span>Who would you like to send this to?</span>
+                </div>
+                <input
+                  type="text"
+                  value={form.partnerName}
+                  onChange={(event) => updateForm({ partnerName: event.target.value })}
+                  placeholder="Name"
+                  className="w-full px-4 py-3 rounded-2xl bg-white/60 backdrop-blur border border-white/60 focus:border-calm-400 focus:ring-2 focus:ring-calm-200/50 outline-none transition-all"
+                />
+              </div>
+
+              <div>
+                <h3 className="section-title">Is this your…?</h3>
+                <div className="space-y-3">
+                  {RELATIONSHIP_OPTIONS.map((option) => {
+                    const selected = form.partnerRelationship === option.value
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => updateForm({ partnerRelationship: option.value })}
+                        className={`w-full text-left rounded-2xl border p-4 transition-all ${
+                          selected
+                            ? 'border-calm-400 bg-calm-50/90 shadow-soft'
+                            : 'border-white/60 bg-white/50 hover:bg-white/70'
+                        }`}
+                      >
+                        <p className="font-medium text-slate-800">{option.label}</p>
+                        {option.description && (
+                          <p className="text-sm text-slate-600 mt-1">{option.description}</p>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="section-title">How would you like to communicate?</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {COMMUNICATION_OPTIONS.map((option) => {
+                    const Icon = option.icon
+                    const selected = form.communicationPreference === option.value
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => updateForm({ communicationPreference: option.value })}
+                        className={`rounded-2xl border p-4 flex items-center gap-3 transition-all ${
+                          selected
+                            ? 'border-calm-400 bg-calm-50/90 text-calm-800 shadow-soft'
+                            : 'border-white/60 bg-white/50 text-slate-700 hover:bg-white/70'
+                        }`}
+                      >
+                        <Icon className="w-5 h-5" />
+                        <span className="font-medium">{option.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {popupStep === 2 && (
+            <motion.div
+              key="popup-2"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-6"
+            >
+              <div className="section-title">
+                <FlaskConical className="w-5 h-5 text-calm-600 shrink-0" />
+                <span>Type of disease</span>
+              </div>
+              <div className="space-y-3">
+                {DISEASE_OPTIONS.map((option) => {
+                  const selected = form.testResult === option.value
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => updateForm({ testResult: option.value })}
+                      className={`w-full text-left rounded-2xl border px-4 py-3 transition-all ${
+                        selected
+                          ? 'border-calm-400 bg-calm-50/90 shadow-soft text-calm-800'
+                          : 'border-white/60 bg-white/50 text-slate-700 hover:bg-white/70'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </motion.div>
+          )}
+
+          {popupStep === 3 && (
+            <motion.div
+              key="popup-3"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-6"
+            >
+              <div>
+                <div className="section-title">
+                  <Upload className="w-5 h-5 text-calm-600 shrink-0" />
+                  <span>About your relationship</span>
+                </div>
+                <p className="text-sm text-slate-600 mb-3">
+                  Can you help provide some context of your last interaction with them?
+                  Upload screenshots or photos (max 2 files).
+                </p>
+                <label className="w-full rounded-2xl border border-dashed border-calm-300/80 bg-white/40 hover:bg-white/60 transition-colors p-4 flex flex-col items-center justify-center gap-2 text-center cursor-pointer">
+                  <Upload className="w-5 h-5 text-calm-600" />
+                  <span className="text-sm font-medium text-slate-700">Upload context files</span>
+                  <span className="text-xs text-slate-500">Up to 2 images</span>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                    disabled={form.lastInteractionFiles.length >= 2}
+                  />
+                </label>
+                {form.lastInteractionFiles.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {form.lastInteractionFiles.map((file, index) => (
+                      <div
+                        key={`${file.name}-${index}`}
+                        className="flex items-center justify-between rounded-xl bg-white/60 border border-white/50 px-3 py-2"
+                      >
+                        <p className="text-sm text-slate-700 truncate">{file.name}</p>
+                        <button
+                          type="button"
+                          onClick={() => removeFile(index)}
+                          className="p-1 rounded-lg hover:bg-white/70 text-slate-500 hover:text-slate-700"
+                          aria-label={`Remove ${file.name}`}
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <h3 className="section-title">What is your attachment style?</h3>
+                <div className="space-y-3">
+                  {ATTACHMENT_STYLE_OPTIONS.map((option) => {
+                    const selected = form.attachmentStyle === option.value
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => updateForm({ attachmentStyle: option.value })}
+                        className={`w-full text-left rounded-2xl border p-4 transition-all ${
+                          selected
+                            ? 'border-calm-400 bg-calm-50/90 shadow-soft'
+                            : 'border-white/60 bg-white/50 hover:bg-white/70'
+                        }`}
+                      >
+                        <p className="font-medium text-slate-800">{option.label}</p>
+                        <p className="text-sm text-slate-600 mt-1">{option.description}</p>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="flex items-center gap-3">
+          {popupStep > 1 && (
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setPopupStep((prev) => (prev - 1) as 1 | 2 | 3)}
+              className="px-5 py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all flex items-center gap-2"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              Back
+            </motion.button>
+          )}
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            onClick={handleNext}
+            disabled={!canContinue}
+            className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-primary text-white font-medium shadow-soft border border-white/20 hover:shadow-lg transition-shadow disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {popupStep === 3 ? 'Continue' : 'Next'}
+            <ArrowRight className="w-5 h-5" />
+          </motion.button>
+        </div>
       </motion.div>
     </div>
   )
