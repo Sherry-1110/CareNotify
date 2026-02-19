@@ -9,9 +9,11 @@ export type ProgressEvent =
   | 'step_2_template_selected'
   | 'step_3_start'
   | 'step_3_sponsor_toggle'
+  | 'step_4_start'
   | 'step_4_complete'
-  | 'step_4_copy'
-  | 'step_4_share'
+  | 'step_5_complete'
+  | 'step_5_copy'
+  | 'step_5_share'
 
 export async function logProgress(
   userId: string | null,

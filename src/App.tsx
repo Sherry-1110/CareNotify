@@ -5,10 +5,11 @@ import { logProgress } from './lib/logging'
 import Step1Auth from './steps/Step1Auth'
 import Step2MessageEditor from './steps/Step2MessageEditor'
 import Step3KitSponsorship from './steps/Step3KitSponsorship'
-import Step4Completion from './steps/Step4Completion'
+import Step4MessagePreview from './steps/Step4MessagePreview'
+import Step5Completion from './steps/Step5Completion'
 
 export type FormState = {
-  step: 1 | 2 | 3 | 4
+  step: 1 | 2 | 3 | 4 | 5
   isGuest: boolean
   userId: string | null
   partnerName: string
@@ -136,7 +137,7 @@ function App() {
                 goToStep(2)
               }}
               onNext={() => {
-                logProgress(form.userId, 'step_4_complete')
+                logProgress(form.userId, 'step_4_start')
                 goToStep(4)
               }}
             />
@@ -147,15 +148,33 @@ function App() {
             key="step4"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Step4MessagePreview
+              form={form}
+              updateForm={updateForm}
+              onNext={() => {
+                logProgress(form.userId, 'step_5_complete')
+                goToStep(5)
+              }}
+            />
+          </motion.div>
+        )}
+        {form.step === 5 && (
+          <motion.div
+            key="step5"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Step4Completion
+            <Step5Completion
               form={form}
               isGuest={form.isGuest}
               onBack={() => goToStep(3)}
-              onLogCopy={() => logProgress(form.userId, 'step_4_copy')}
-              onLogShare={() => logProgress(form.userId, 'step_4_share')}
+              onLogCopy={() => logProgress(form.userId, 'step_5_copy')}
+              onLogShare={() => logProgress(form.userId, 'step_5_share')}
             />
           </motion.div>
         )}
