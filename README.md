@@ -7,6 +7,7 @@ An empathetic web app for STI notification. Notify with care.
 - **React** + **TypeScript** (Vite)
 - **Tailwind CSS** – calming/medical-modern UI
 - **Firebase** – Auth (incl. anonymous for guests), optional progress logging
+- **Firebase Functions** – secure LLM message generation endpoint
 - **Framer Motion** – step transitions
 - **Lucide React** – icons
 
@@ -27,7 +28,25 @@ An empathetic web app for STI notification. Notify with care.
 
    The app works without Firebase: guest flow and all 4 steps still run; only anonymous logging is skipped.
 
-3. **Run**
+3. **LLM message generation (recommended)**
+
+   The final step can generate a personalized disclosure message using a Firebase Function (`/api/generate-message`).
+
+   Install function dependencies:
+
+   ```bash
+   cd functions
+   npm install
+   cd ..
+   ```
+
+   Set OpenAI secret for Firebase Functions:
+
+   ```bash
+   firebase functions:secrets:set OPENAI_API_KEY
+   ```
+
+4. **Run**
 
    ```bash
    npm run dev
@@ -38,9 +57,9 @@ An empathetic web app for STI notification. Notify with care.
 ## User flow (4 steps)
 
 1. **Auth** – Sign up/Login (Firebase) or Continue as Guest.
-2. **Message editor** – Partner name, test result, tone (Supportive / Direct), live preview, editable script.
+2. **Message editor** – Partner + relationship details, STI type, relationship context uploads, attachment style.
 3. **Kit sponsorship** – Optional “Sponsor a testing kit” (Pre-paid/Included).
-4. **Completion** – Copy to clipboard, Share via Text/WhatsApp; privacy note for guests.
+4. **Completion** – LLM-generated personalized message, copy/share actions, privacy note for guests.
 
 ## Build
 
