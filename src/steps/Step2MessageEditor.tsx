@@ -317,15 +317,17 @@ export default function Step2MessageEditor({ form, updateForm, onNext, onBack }:
         </AnimatePresence>
 
         <div className="flex items-center gap-3">
-          <motion.button
-            type="button"
-            whileTap={{ scale: 0.98 }}
-            onClick={onBack}
-            className="px-5 py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all flex items-center gap-2"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            Back
-          </motion.button>
+          {popupStep === 1 && (
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.98 }}
+              onClick={onBack}
+              className="px-5 py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all flex items-center gap-2"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              Back
+            </motion.button>
+          )}
           {popupStep > 1 && (
             <motion.button
               type="button"
