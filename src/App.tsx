@@ -172,7 +172,7 @@ function App() {
             <Step5Completion
               form={form}
               isGuest={form.isGuest}
-              onBack={() => goToStep(3)}
+              onBack={() => goToStep(4)}
               onLogCopy={() => logProgress(form.userId, 'step_5_copy')}
               onLogShare={() => logProgress(form.userId, 'step_5_share')}
             />

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Copy, MessageCircle, Phone, Share2, Shield } from 'lucide-react'
+import { Copy, MessageCircle, Phone, Share2, Shield, ArrowLeft } from 'lucide-react'
 import type { FormState } from '../App'
 
 const TEST_LABELS: Record<string, string> = {
@@ -36,11 +36,12 @@ function getDefaultMessage(form: FormState): string {
 type Step5CompletionProps = {
   form: FormState
   isGuest: boolean
+  onBack: () => void
   onLogCopy: () => void
   onLogShare: () => void
 }
 
-export default function Step5Completion({ form, isGuest, onLogCopy, onLogShare }: Step5CompletionProps) {
+export default function Step5Completion({ form, isGuest, onBack, onLogCopy, onLogShare }: Step5CompletionProps) {
   const [copied, setCopied] = useState(false)
   const communicationLabel = form.communicationPreference === 'call' ? 'Call' : 'Text'
   
@@ -88,6 +89,16 @@ export default function Step5Completion({ form, isGuest, onLogCopy, onLogShare }
             <p className="text-xs font-medium text-slate-500 mb-2">Message preview</p>
             <p className="text-sm text-slate-700 whitespace-pre-wrap">{messageToShare}</p>
           </div>
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            onClick={onBack}
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white/70 text-slate-700 font-medium hover:bg-white hover:shadow-md transition-all border border-slate-200"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Edit message
+          </motion.button>
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
