@@ -290,7 +290,7 @@ export default function Step2MessageEditor({ form, updateForm, onNext, onBack }:
               </div>
 
               <div>
-                <h3 className="section-title">What is your attachment style?</h3>
+                <h3 className="section-title">What is your partner's attachment style?</h3>
                 <div className="space-y-3">
                   {ATTACHMENT_STYLE_OPTIONS.map((option) => {
                     const selected = form.attachmentStyle === option.value
