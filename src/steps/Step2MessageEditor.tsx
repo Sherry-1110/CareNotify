@@ -64,12 +64,19 @@ const ATTACHMENT_STYLE_OPTIONS = [
 type Step2MessageEditorProps = {
   form: FormState
   updateForm: (u: Partial<FormState>) => void
+  initialPage?: 1 | 2 | 3 | 4
   onNext: () => void
   onBack: () => void
 }
 
-export default function Step2MessageEditor({ form, updateForm, onNext, onBack }: Step2MessageEditorProps) {
-  const [popupStep, setPopupStep] = useState<1 | 2 | 3 | 4>(1)
+export default function Step2MessageEditor({
+  form,
+  updateForm,
+  initialPage = 1,
+  onNext,
+  onBack,
+}: Step2MessageEditorProps) {
+  const [popupStep, setPopupStep] = useState<1 | 2 | 3 | 4>(initialPage)
 
   const canContinue = popupStep === 1
     ? Boolean(form.partnerName.trim() && form.partnerRelationship && form.communicationPreference)

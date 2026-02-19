@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Copy, MessageCircle, Phone, Share2, Shield } from 'lucide-react'
+import { ArrowLeft, Copy, MessageCircle, Phone, Share2, Shield } from 'lucide-react'
 import type { FormState } from '../App'
 
 const TEST_LABELS: Record<string, string> = {
@@ -63,11 +63,12 @@ function getDefaultMessage(form: FormState): string {
 type Step4CompletionProps = {
   form: FormState
   isGuest: boolean
+  onBack: () => void
   onLogCopy: () => void
   onLogShare: () => void
 }
 
-export default function Step4Completion({ form, isGuest, onLogCopy, onLogShare }: Step4CompletionProps) {
+export default function Step4Completion({ form, isGuest, onBack, onLogCopy, onLogShare }: Step4CompletionProps) {
   const [copied, setCopied] = useState(false)
   const communicationLabel = form.communicationPreference === 'call' ? 'Call' : 'Text'
   const guidance = ATTACHMENT_GUIDANCE[form.attachmentStyle as Exclude<AttachmentKey, ''>] ?? FALLBACK_GUIDANCE
@@ -184,6 +185,15 @@ export default function Step4Completion({ form, isGuest, onLogCopy, onLogShare }
               </div>
             </div>
           </div>
+          <motion.button
+            type="button"
+            whileTap={{ scale: 0.98 }}
+            onClick={onBack}
+            className="w-full px-5 py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all flex items-center justify-center gap-2"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back
+          </motion.button>
         </div>
 
         {isGuest && (

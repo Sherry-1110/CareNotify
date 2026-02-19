@@ -40,6 +40,7 @@ const initialFormState: FormState = {
 function App() {
   const [form, setForm] = useState<FormState>(initialFormState)
   const [firebaseReady, setFirebaseReady] = useState(false)
+  const [step2InitialPage, setStep2InitialPage] = useState<1 | 2 | 3 | 4>(1)
 
   useEffect(() => {
     const fb = initFirebase()
@@ -55,6 +56,7 @@ function App() {
   }
 
   const handleGuestContinue = async () => {
+    setStep2InitialPage(1)
     try {
       if (firebaseReady) {
         const user = await signInAsGuest()
@@ -74,6 +76,7 @@ function App() {
   }
 
   const handleSignInSuccess = (userId: string) => {
+    setStep2InitialPage(1)
     updateForm({ isGuest: false, userId, step: 2 })
     logProgress(userId, 'step_1_signin')
   }
@@ -107,7 +110,9 @@ function App() {
             <Step2MessageEditor
               form={form}
               updateForm={updateForm}
+              initialPage={step2InitialPage}
               onNext={() => {
+                setStep2InitialPage(1)
                 logProgress(form.userId, 'step_3_start')
                 goToStep(3)
               }}
@@ -126,6 +131,10 @@ function App() {
             <Step3KitSponsorship
               form={form}
               updateForm={updateForm}
+              onBack={() => {
+                setStep2InitialPage(4)
+                goToStep(2)
+              }}
               onNext={() => {
                 logProgress(form.userId, 'step_4_complete')
                 goToStep(4)
@@ -144,6 +153,7 @@ function App() {
             <Step4Completion
               form={form}
               isGuest={form.isGuest}
+              onBack={() => goToStep(3)}
               onLogCopy={() => logProgress(form.userId, 'step_4_copy')}
               onLogShare={() => logProgress(form.userId, 'step_4_share')}
             />
