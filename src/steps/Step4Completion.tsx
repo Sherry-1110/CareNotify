@@ -15,15 +15,22 @@ const TEST_LABELS: Record<string, string> = {
 }
 
 function getDefaultMessage(form: FormState): string {
-  const name = form.partnerName || '[Name]'
-  if (form.testResults.length === 0) {
-    return `Hi ${name}, I wanted to let you know I recently tested positive for an STI. Please get tested when you can. I'm sharing this so we can both take care of our health.`
-  }
+  const name = form.partnerName || '*insert partner name*'
   const diseases = form.testResults
     .map((result) => TEST_LABELS[result] ?? result)
     .join(', ')
-  const diseaseText = form.testResults.length === 1 ? diseases : `the following: ${diseases}`
-  return `Hi ${name}, I wanted to let you know I recently tested positive for ${diseaseText}. Please get tested when you can. I'm sharing this so we can both take care of our health.`
+  
+  if (form.sponsorKit) {
+    if (form.testResults.length === 0) {
+      return `Hey ${name}, I tested positive for an STI. I wanted to let you know so you can get tested too. I'm not accusing you of anything — sometimes it can show up later without symptoms. I care about us and just want us both to be healthy. I actually ordered an at-home test kit for you just to make things easier and totally up to you if you want to use it. I just wanted to handle this responsibly.`
+    }
+    return `Hey ${name}, I tested positive for ${diseases}. I wanted to let you know so you can get tested too. I'm not accusing you of anything — sometimes it can show up later without symptoms. I care about us and just want us both to be healthy. I actually ordered an at-home test kit for you just to make things easier and totally up to you if you want to use it. I just wanted to handle this responsibly.`
+  }
+  
+  if (form.testResults.length === 0) {
+    return `Hey ${name}, I tested positive for an STI. I wanted to let you know so you can get tested too. I'm not accusing you of anything — sometimes it can show up later without symptoms. I care about us and just want us both to be healthy.`
+  }
+  return `Hey ${name}, I tested positive for ${diseases}. I wanted to let you know so you can get tested too. I'm not accusing you of anything — sometimes it can show up later without symptoms. I care about us and just want us both to be healthy.`
 }
 
 type Step4CompletionProps = {
