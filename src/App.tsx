@@ -17,6 +17,7 @@ export type FormState = {
   testResults: string[]
   attachmentStyle: '' | 'secure' | 'anxious' | 'avoidant' | 'disorganized'
   lastInteractionFiles: File[]
+  additionalMessage: string
   messageText: string
   sponsorKit: boolean
 }
@@ -31,6 +32,7 @@ const initialFormState: FormState = {
   testResults: [],
   attachmentStyle: '',
   lastInteractionFiles: [],
+  additionalMessage: '',
   messageText: '',
   sponsorKit: false,
 }

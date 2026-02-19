@@ -69,18 +69,20 @@ type Step2MessageEditorProps = {
 }
 
 export default function Step2MessageEditor({ form, updateForm, onNext, onBack }: Step2MessageEditorProps) {
-  const [popupStep, setPopupStep] = useState<1 | 2 | 3>(1)
+  const [popupStep, setPopupStep] = useState<1 | 2 | 3 | 4>(1)
 
   const canContinue = popupStep === 1
     ? Boolean(form.partnerName.trim() && form.partnerRelationship && form.communicationPreference)
     : popupStep === 2
-      ? Boolean(form.testResults.length > 0)
-      : Boolean(form.attachmentStyle)
+      ? Boolean(form.testResults)
+      : popupStep === 3
+        ? Boolean(form.attachmentStyle)
+        : true // Page 4 is optional, always can continue
 
   const handleNext = () => {
     if (!canContinue) return
-    if (popupStep < 3) {
-      setPopupStep((prev) => (prev + 1) as 1 | 2 | 3)
+    if (popupStep < 4) {
+      setPopupStep((prev) => (prev + 1) as 1 | 2 | 3 | 4)
       return
     }
     onNext()
@@ -123,11 +125,11 @@ export default function Step2MessageEditor({ form, updateForm, onNext, onBack }:
       >
         <div className="page-header">
           <h2 className="page-header-title">Message & partner info</h2>
-          <p className="page-header-desc">Page {popupStep} of 3</p>
+          <p className="page-header-desc">Page {popupStep} of 4</p>
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
-          {[1, 2, 3].map((dot) => (
+        <div className="grid grid-cols-4 gap-2">
+          {[1, 2, 3, 4].map((dot) => (
             <div
               key={dot}
               className={`h-2 rounded-full transition-all ${
@@ -340,6 +342,31 @@ export default function Step2MessageEditor({ form, updateForm, onNext, onBack }:
               </div>
             </motion.div>
           )}
+
+          {popupStep === 4 && (
+            <motion.div
+              key="popup-4"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-6"
+            >
+              <div>
+                <h3 className="section-title">Additional message content (optional)</h3>
+                <p className="text-sm text-slate-600 mb-3">
+                  Share anything else you'd like to include in the message (manual input)
+                </p>
+                <textarea
+                  value={form.additionalMessage || ''}
+                  onChange={(event) => updateForm({ additionalMessage: event.target.value })}
+                  placeholder="Type your additional message here..."
+                  rows={6}
+                  className="w-full px-4 py-3 rounded-2xl bg-white/60 backdrop-blur border border-white/60 focus:border-calm-400 focus:ring-2 focus:ring-calm-200/50 outline-none transition-all resize-none"
+                />
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
 
         <div className="flex items-center gap-3">
@@ -358,7 +385,7 @@ export default function Step2MessageEditor({ form, updateForm, onNext, onBack }:
             <motion.button
               type="button"
               whileTap={{ scale: 0.98 }}
-              onClick={() => setPopupStep((prev) => (prev - 1) as 1 | 2 | 3)}
+              onClick={() => setPopupStep((prev) => (prev - 1) as 1 | 2 | 3 | 4)}
               className="px-5 py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all flex items-center gap-2"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -372,7 +399,7 @@ export default function Step2MessageEditor({ form, updateForm, onNext, onBack }:
             disabled={!canContinue}
             className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-primary text-white font-medium shadow-soft border border-white/20 hover:shadow-lg transition-shadow disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {popupStep === 3 ? 'Continue' : 'Next'}
+            {popupStep === 4 ? 'Continue' : 'Next'}
             <ArrowRight className="w-5 h-5" />
           </motion.button>
         </div>
