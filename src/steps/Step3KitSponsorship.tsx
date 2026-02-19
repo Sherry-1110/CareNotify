@@ -1,14 +1,15 @@
 import { motion } from 'framer-motion'
-import { ArrowRight, Gift, Check } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Gift, Check } from 'lucide-react'
 import type { FormState } from '../App'
 
 type Step3KitSponsorshipProps = {
   form: FormState
   updateForm: (u: Partial<FormState>) => void
+  onBack: () => void
   onNext: () => void
 }
 
-export default function Step3KitSponsorship({ form, updateForm, onNext }: Step3KitSponsorshipProps) {
+export default function Step3KitSponsorship({ form, updateForm, onBack, onNext }: Step3KitSponsorshipProps) {
   return (
     <div className="min-h-screen px-6 py-8 pb-24 max-w-lg mx-auto">
       <motion.div
@@ -63,15 +64,26 @@ export default function Step3KitSponsorship({ form, updateForm, onNext }: Step3K
           You can skip this step. Your message will still be ready to send.
         </p>
 
-        <motion.button
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
-          onClick={onNext}
-          className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-primary text-white font-medium shadow-soft border border-white/20 hover:shadow-lg transition-shadow"
-        >
-          Continue to summary
-          <ArrowRight className="w-5 h-5" />
-        </motion.button>
+        <div className="flex items-center gap-3">
+          <motion.button
+            type="button"
+            whileTap={{ scale: 0.98 }}
+            onClick={onBack}
+            className="px-5 py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all flex items-center gap-2"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            onClick={onNext}
+            className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-primary text-white font-medium shadow-soft border border-white/20 hover:shadow-lg transition-shadow"
+          >
+            Continue to summary
+            <ArrowRight className="w-5 h-5" />
+          </motion.button>
+        </div>
       </motion.div>
     </div>
   )

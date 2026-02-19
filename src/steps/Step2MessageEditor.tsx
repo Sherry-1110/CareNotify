@@ -64,17 +64,25 @@ const ATTACHMENT_STYLE_OPTIONS = [
 type Step2MessageEditorProps = {
   form: FormState
   updateForm: (u: Partial<FormState>) => void
+  initialPage?: 1 | 2 | 3 | 4
   onNext: () => void
   onBack: () => void
 }
 
-export default function Step2MessageEditor({ form, updateForm, onNext, onBack }: Step2MessageEditorProps) {
-  const [popupStep, setPopupStep] = useState<1 | 2 | 3 | 4>(1)
+export default function Step2MessageEditor({
+  form,
+  updateForm,
+  initialPage = 1,
+  onNext,
+  onBack,
+}: Step2MessageEditorProps) {
+  const [popupStep, setPopupStep] = useState<1 | 2 | 3 | 4>(initialPage)
+  const [hasInteractedWithStiSelection, setHasInteractedWithStiSelection] = useState(false)
 
   const canContinue = popupStep === 1
     ? Boolean(form.partnerName.trim() && form.partnerRelationship && form.communicationPreference)
     : popupStep === 2
-      ? Boolean(form.testResults)
+      ? form.testResults.length > 0
       : popupStep === 3
         ? Boolean(form.attachmentStyle)
         : true // Page 4 is optional, always can continue
@@ -104,6 +112,7 @@ export default function Step2MessageEditor({ form, updateForm, onNext, onBack }:
   }
 
   const toggleDisease = (diseaseValue: string) => {
+    setHasInteractedWithStiSelection(true)
     const isSelected = form.testResults.includes(diseaseValue)
     if (isSelected) {
       updateForm({
@@ -260,6 +269,9 @@ export default function Step2MessageEditor({ form, updateForm, onNext, onBack }:
                     )
                   })}
                 </div>
+                {form.testResults.length === 0 && hasInteractedWithStiSelection && (
+                  <p className="text-sm text-red-600 mt-2">Select at least one STI to continue.</p>
+                )}
               </div>
             </motion.div>
           )}
@@ -318,7 +330,7 @@ export default function Step2MessageEditor({ form, updateForm, onNext, onBack }:
               </div>
 
               <div>
-                <h3 className="section-title">What is your attachment style?</h3>
+                <h3 className="section-title">What is your partner's attachment style?</h3>
                 <div className="space-y-3">
                   {ATTACHMENT_STYLE_OPTIONS.map((option) => {
                     const selected = form.attachmentStyle === option.value
@@ -355,7 +367,7 @@ export default function Step2MessageEditor({ form, updateForm, onNext, onBack }:
               <div>
                 <h3 className="section-title">Additional message content (optional)</h3>
                 <p className="text-sm text-slate-600 mb-3">
-                  Share anything else you'd like to include in the message (manual input)
+                  Share anything else you'd like to include in the message
                 </p>
                 <textarea
                   value={form.additionalMessage || ''}
