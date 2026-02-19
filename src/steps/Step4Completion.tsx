@@ -1,24 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Copy, MessageCircle, Phone, Share2, Shield } from 'lucide-react'
+import { Copy, LoaderCircle, MessageCircle, Phone, Share2, Shield, Sparkles } from 'lucide-react'
 import type { FormState } from '../App'
-
-const TEST_LABELS: Record<string, string> = {
-  chlamydia: 'Chlamydia',
-  gonorrhea: 'Gonorrhea',
-  syphilis: 'Syphilis',
-  trichomoniasis: 'Trichomoniasis',
-  hiv: 'HIV',
-  hsv_1: 'HSV-1 (Herpes Simplex Virus Type 1)',
-  hsv_2: 'HSV-2 (Herpes Simplex Virus Type 2)',
-  mycoplasma_genitalium: 'Mycoplasma Genitalium',
-}
-
-function getDefaultMessage(form: FormState): string {
-  const name = form.partnerName || '[Name]'
-  const test = TEST_LABELS[form.testResult] ?? 'an STI'
-  return `Hi ${name}, I wanted to let you know I recently tested positive for ${test}. Please get tested when you can. I’m sharing this so we can both take care of our health.`
-}
+import { generateMessageFromForm, getDefaultMessage } from '../lib/messageGenerator'
 
 type Step4CompletionProps = {
   form: FormState
@@ -29,11 +13,33 @@ type Step4CompletionProps = {
 
 export default function Step4Completion({ form, isGuest, onLogCopy, onLogShare }: Step4CompletionProps) {
   const [copied, setCopied] = useState(false)
+  const [generatedMessage, setGeneratedMessage] = useState('')
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [generationError, setGenerationError] = useState('')
   const communicationLabel = form.communicationPreference === 'call' ? 'Call' : 'Text'
-  const messageToShare = useMemo(
-    () => form.messageText.trim() || getDefaultMessage(form),
-    [form.messageText, form.partnerName, form.testResult]
-  )
+  const fallbackMessage = form.messageText.trim() || getDefaultMessage(form)
+  const messageToShare = generatedMessage || fallbackMessage
+
+  const runGeneration = async () => {
+    setIsGenerating(true)
+    setGenerationError('')
+    try {
+      const message = await generateMessageFromForm(form)
+      setGeneratedMessage(message)
+    } catch (error) {
+      setGeneratedMessage('')
+      const details = error instanceof Error ? error.message : 'Unknown error'
+      setGenerationError(`Could not generate a personalized message. Using fallback message instead. ${details}`)
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  useEffect(() => {
+    void runGeneration()
+    // Generate once on page load.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleCopy = async () => {
     try {
@@ -71,7 +77,30 @@ export default function Step4Completion({ form, isGuest, onLogCopy, onLogShare }
 
         <div className="w-full space-y-4">
           <div className="rounded-2xl bg-white/50 backdrop-blur p-4 border border-white/50 text-left">
-            <p className="text-xs font-medium text-slate-500 mb-2">Message preview</p>
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <p className="text-xs font-medium text-slate-500">Personalized message</p>
+              <button
+                type="button"
+                onClick={() => void runGeneration()}
+                disabled={isGenerating}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-calm-700 hover:text-calm-900 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isGenerating ? (
+                  <>
+                    <LoaderCircle className="w-3.5 h-3.5 animate-spin" />
+                    Generating
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Regenerate
+                  </>
+                )}
+              </button>
+            </div>
+            {generationError && (
+              <p className="text-xs text-amber-700 mb-2">{generationError}</p>
+            )}
             <p className="text-sm text-slate-700 whitespace-pre-wrap">{messageToShare}</p>
           </div>
           <motion.button
