@@ -14,6 +14,33 @@ const TEST_LABELS: Record<string, string> = {
   mycoplasma_genitalium: 'Mycoplasma Genitalium',
 }
 
+type AttachmentKey = FormState['attachmentStyle']
+type AttachmentGuidance = {
+  tip: string
+}
+
+const ATTACHMENT_GUIDANCE: Record<Exclude<AttachmentKey, ''>, AttachmentGuidance> = {
+  anxious: {
+    tip: "Tip: Your draft isn't wrong. However, with an anxious partner, clarity and reassurance can really help prevent spiraling. Some parts might unintentionally feel like an indirect accusation. It could help to remove any implied blame, keep the focus on health, and clearly signal that the relationship is safe.",
+  },
+  secure: {
+    tip: "Tip: Your draft isn't wrong. However, with a secure partner, direct and transparent wording with clear next steps usually works well. It could help to stay factual, keep the focus on health, and frame this as collaboration instead of blame.",
+  },
+  avoidant: {
+    tip: "Tip: Your draft isn't wrong. However, with an avoidant partner, concise and non-pressuring language can reduce shutdown. It could help to remove emotionally loaded wording, keep the focus on health, and avoid any implied blame.",
+  },
+  disorganized: {
+    tip: "Tip: Your draft isn't wrong. However, with a disorganized partner, calm and consistent wording can make the conversation feel safer. It could help to remove implied blame, keep the focus on health, and clearly reinforce emotional safety.",
+  },
+}
+
+const FALLBACK_GUIDANCE: AttachmentGuidance = {
+  tip: "Tip: Your draft isn't wrong. It could help to keep the message clear, non-blaming, and focused on shared health.",
+}
+
+const POSITIVE_NOTE_LEAD = `"You're taking a positive step.`
+const POSITIVE_NOTE_BODY = 'Being open about sexual health builds trust and keeps everyone safe."'
+
 function getDefaultMessage(form: FormState): string {
   const name = form.partnerName || '[Name]'
   const test = TEST_LABELS[form.testResult] ?? 'an STI'
@@ -30,6 +57,7 @@ type Step4CompletionProps = {
 export default function Step4Completion({ form, isGuest, onLogCopy, onLogShare }: Step4CompletionProps) {
   const [copied, setCopied] = useState(false)
   const communicationLabel = form.communicationPreference === 'call' ? 'Call' : 'Text'
+  const guidance = ATTACHMENT_GUIDANCE[form.attachmentStyle as Exclude<AttachmentKey, ''>] ?? FALLBACK_GUIDANCE
   const messageToShare = useMemo(
     () => form.messageText.trim() || getDefaultMessage(form),
     [form.messageText, form.partnerName, form.testResult]
@@ -131,6 +159,18 @@ export default function Step4Completion({ form, isGuest, onLogCopy, onLogShare }
               Pay for kit
             </motion.button>
           )}
+          <div className="rounded-2xl glass-card p-4 border border-white/50 text-left">
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm text-slate-700">{guidance.tip}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-900 leading-tight">Positive Note:</p>
+                <p className="mt-1 text-xl leading-tight font-bold text-slate-800">{POSITIVE_NOTE_LEAD}</p>
+                <p className="text-sm leading-tight font-medium text-slate-500">{POSITIVE_NOTE_BODY}</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {isGuest && (
