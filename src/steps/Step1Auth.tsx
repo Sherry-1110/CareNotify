@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Heart, LogIn, User, Mail, Lock, X, UserCircle, Phone } from 'lucide-react'
+import { LogIn, User, Mail, Lock, X, UserCircle, Phone } from 'lucide-react'
 import { signInWithEmail, signUpWithProfile, signInWithGoogle } from '../lib/firebase'
+import logoImage from '../../logo.jpg'
 
 type Step1AuthProps = {
   onGuestContinue: () => void
@@ -72,10 +73,17 @@ export default function Step1Auth({ onGuestContinue, onSignInSuccess, firebaseRe
         transition={{ duration: 0.4 }}
         className="w-full max-w-sm glass-dark rounded-3xl p-8 sm:p-10 flex flex-col items-center text-center"
       >
-        <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-calm-400/90 to-calm-600 flex items-center justify-center mb-6 shadow-soft border border-white/30">
-          <Heart className="w-8 h-8 text-white" strokeWidth={1.8} />
+        <div className="w-20 h-20 rounded-3xl bg-white/75 backdrop-blur flex items-center justify-center mb-6 shadow-soft border border-white/70">
+          <img
+            src={logoImage}
+            alt="CareNotify logo"
+            className="w-[4.5rem] h-[4.5rem] object-cover rounded-2xl translate-y-1"
+          />
         </div>
-        <h1 className="text-2xl font-semibold text-slate-800 mb-2">CareNotify</h1>
+        <h1 className="text-2xl font-semibold mb-2">
+          <span className="text-[#2D6BA5]">Care</span>
+          <span className="text-[#4FB39B]">Notify</span>
+        </h1>
         <p className="text-slate-600 text-base leading-relaxed mb-10">
           Notify with care. We help you share health information in a supportive way.
         </p>
