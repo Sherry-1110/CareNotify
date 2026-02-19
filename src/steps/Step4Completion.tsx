@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Copy, MessageCircle, Phone, Share2, Shield } from 'lucide-react'
+import { ArrowLeft, Copy, Lightbulb, MessageCircle, Phone, Share2, Shield, Sparkles } from 'lucide-react'
 import type { FormState } from '../App'
 
 const TEST_LABELS: Record<string, string> = {
@@ -173,15 +173,23 @@ export default function Step4Completion({ form, isGuest, onBack, onLogCopy, onLo
               Pay for kit
             </motion.button>
           )}
-          <div className="rounded-2xl glass-card p-4 border border-white/50 text-left">
-            <div className="space-y-3">
-              <div>
-                <p className="text-sm text-slate-700">{guidance.tip}</p>
+          <div className="relative overflow-hidden rounded-3xl border border-calm-200/70 bg-gradient-to-br from-white/90 via-calm-50/80 to-white/80 p-5 text-left shadow-soft">
+            <div className="pointer-events-none absolute -top-16 -right-10 h-40 w-40 rounded-full bg-calm-200/40 blur-2xl" />
+            <div className="relative space-y-4">
+              <div className="rounded-2xl border border-white/80 bg-white/75 p-4 backdrop-blur">
+                <div className="mb-2 flex items-center gap-2 text-calm-700">
+                  <Lightbulb className="w-4 h-4" />
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em]">Tip</p>
+                </div>
+                <p className="text-sm leading-relaxed text-slate-700">{guidance.tip}</p>
               </div>
-              <div>
-                <p className="text-sm font-medium text-slate-900 leading-tight">Positive Note:</p>
-                <p className="mt-1 text-xl leading-tight font-bold text-slate-800">{POSITIVE_NOTE_LEAD}</p>
-                <p className="text-sm leading-tight font-medium text-slate-500">{POSITIVE_NOTE_BODY}</p>
+              <div className="rounded-2xl border border-calm-200/70 bg-gradient-to-br from-calm-50/80 to-white/95 p-4">
+                <div className="mb-2 flex items-center gap-2 text-calm-700">
+                  <Sparkles className="w-4 h-4" />
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em]">Positive Note:</p>
+                </div>
+                <p className="text-xl leading-tight font-bold text-slate-800">{POSITIVE_NOTE_LEAD}</p>
+                <p className="mt-1 text-sm leading-relaxed font-medium text-slate-600">{POSITIVE_NOTE_BODY}</p>
               </div>
             </div>
           </div>

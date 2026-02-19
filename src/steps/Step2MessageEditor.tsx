@@ -367,7 +367,7 @@ export default function Step2MessageEditor({
               <div>
                 <h3 className="section-title">Additional message content (optional)</h3>
                 <p className="text-sm text-slate-600 mb-3">
-                  Share anything else you'd like to include in the message (manual input)
+                  Share anything else you'd like to include in the message
                 </p>
                 <textarea
                   value={form.additionalMessage || ''}
