@@ -77,11 +77,12 @@ export default function Step2MessageEditor({
   onBack,
 }: Step2MessageEditorProps) {
   const [popupStep, setPopupStep] = useState<1 | 2 | 3 | 4>(initialPage)
+  const [hasInteractedWithStiSelection, setHasInteractedWithStiSelection] = useState(false)
 
   const canContinue = popupStep === 1
     ? Boolean(form.partnerName.trim() && form.partnerRelationship && form.communicationPreference)
     : popupStep === 2
-      ? Boolean(form.testResults)
+      ? form.testResults.length > 0
       : popupStep === 3
         ? Boolean(form.attachmentStyle)
         : true // Page 4 is optional, always can continue
@@ -111,6 +112,7 @@ export default function Step2MessageEditor({
   }
 
   const toggleDisease = (diseaseValue: string) => {
+    setHasInteractedWithStiSelection(true)
     const isSelected = form.testResults.includes(diseaseValue)
     if (isSelected) {
       updateForm({
@@ -267,6 +269,9 @@ export default function Step2MessageEditor({
                     )
                   })}
                 </div>
+                {form.testResults.length === 0 && hasInteractedWithStiSelection && (
+                  <p className="text-sm text-red-600 mt-2">Select at least one STI to continue.</p>
+                )}
               </div>
             </motion.div>
           )}
