@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowRight, MessageSquare } from 'lucide-react'
+import { ArrowLeft, ArrowRight, MessageSquare } from 'lucide-react'
 import type { FormState } from '../App'
 
 const TEST_LABELS: Record<string, string> = {
@@ -36,10 +36,11 @@ function getDefaultMessage(form: FormState): string {
 type Step4MessagePreviewProps = {
   form: FormState
   updateForm: (u: Partial<FormState>) => void
+  onBack: () => void
   onNext: () => void
 }
 
-export default function Step4MessagePreview({ form, updateForm, onNext }: Step4MessagePreviewProps) {
+export default function Step4MessagePreview({ form, updateForm, onBack, onNext }: Step4MessagePreviewProps) {
   const templateMessage = useMemo(
     () => getDefaultMessage(form),
     [form.partnerName, form.testResults, form.sponsorKit]
@@ -78,15 +79,26 @@ export default function Step4MessagePreview({ form, updateForm, onNext }: Step4M
           Once you're happy with your message, continue to send it.
         </p>
 
-        <motion.button
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
-          onClick={onNext}
-          className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-primary text-white font-medium shadow-soft border border-white/20 hover:shadow-lg transition-shadow"
-        >
-          Continue to send
-          <ArrowRight className="w-5 h-5" />
-        </motion.button>
+        <div className="flex items-center gap-3">
+          <motion.button
+            type="button"
+            whileTap={{ scale: 0.98 }}
+            onClick={onBack}
+            className="px-5 py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all flex items-center gap-2"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            onClick={onNext}
+            className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-primary text-white font-medium shadow-soft border border-white/20 hover:shadow-lg transition-shadow"
+          >
+            Continue to send
+            <ArrowRight className="w-5 h-5" />
+          </motion.button>
+        </div>
       </motion.div>
     </div>
   )

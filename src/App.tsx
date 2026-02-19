@@ -154,6 +154,7 @@ function App() {
             <Step4MessagePreview
               form={form}
               updateForm={updateForm}
+              onBack={() => goToStep(3)}
               onNext={() => {
                 logProgress(form.userId, 'step_5_complete')
                 goToStep(5)
