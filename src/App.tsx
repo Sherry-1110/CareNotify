@@ -14,7 +14,7 @@ export type FormState = {
   partnerName: string
   partnerRelationship: '' | 'current_partner' | 'previous_partner' | 'future_partner'
   communicationPreference: '' | 'text' | 'call'
-  testResult: string
+  testResults: string[]
   attachmentStyle: '' | 'secure' | 'anxious' | 'avoidant' | 'disorganized'
   lastInteractionFiles: File[]
   messageText: string
@@ -28,7 +28,7 @@ const initialFormState: FormState = {
   partnerName: '',
   partnerRelationship: '',
   communicationPreference: '',
-  testResult: '',
+  testResults: [],
   attachmentStyle: '',
   lastInteractionFiles: [],
   messageText: '',

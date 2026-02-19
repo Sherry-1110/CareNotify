@@ -16,8 +16,14 @@ const TEST_LABELS: Record<string, string> = {
 
 function getDefaultMessage(form: FormState): string {
   const name = form.partnerName || '[Name]'
-  const test = TEST_LABELS[form.testResult] ?? 'an STI'
-  return `Hi ${name}, I wanted to let you know I recently tested positive for ${test}. Please get tested when you can. I’m sharing this so we can both take care of our health.`
+  if (form.testResults.length === 0) {
+    return `Hi ${name}, I wanted to let you know I recently tested positive for an STI. Please get tested when you can. I'm sharing this so we can both take care of our health.`
+  }
+  const diseases = form.testResults
+    .map((result) => TEST_LABELS[result] ?? result)
+    .join(', ')
+  const diseaseText = form.testResults.length === 1 ? diseases : `the following: ${diseases}`
+  return `Hi ${name}, I wanted to let you know I recently tested positive for ${diseaseText}. Please get tested when you can. I'm sharing this so we can both take care of our health.`
 }
 
 type Step4CompletionProps = {
@@ -32,7 +38,7 @@ export default function Step4Completion({ form, isGuest, onLogCopy, onLogShare }
   const communicationLabel = form.communicationPreference === 'call' ? 'Call' : 'Text'
   const messageToShare = useMemo(
     () => form.messageText.trim() || getDefaultMessage(form),
-    [form.messageText, form.partnerName, form.testResult]
+    [form.messageText, form.partnerName, form.testResults]
   )
 
   const handleCopy = async () => {

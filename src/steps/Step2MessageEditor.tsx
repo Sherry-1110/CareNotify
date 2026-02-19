@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, FlaskConical, MessageCircle, Phone, Upload, User, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, FlaskConical, MessageCircle, Phone, Upload, User, X } from 'lucide-react'
 import type { ChangeEvent } from 'react'
 import type { FormState } from '../App'
 
@@ -74,7 +74,7 @@ export default function Step2MessageEditor({ form, updateForm, onNext, onBack }:
   const canContinue = popupStep === 1
     ? Boolean(form.partnerName.trim() && form.partnerRelationship && form.communicationPreference)
     : popupStep === 2
-      ? Boolean(form.testResult)
+      ? Boolean(form.testResults.length > 0)
       : Boolean(form.attachmentStyle)
 
   const handleNext = () => {
@@ -99,6 +99,19 @@ export default function Step2MessageEditor({ form, updateForm, onNext, onBack }:
     updateForm({
       lastInteractionFiles: form.lastInteractionFiles.filter((_, index) => index !== indexToRemove),
     })
+  }
+
+  const toggleDisease = (diseaseValue: string) => {
+    const isSelected = form.testResults.includes(diseaseValue)
+    if (isSelected) {
+      updateForm({
+        testResults: form.testResults.filter((d) => d !== diseaseValue),
+      })
+    } else {
+      updateForm({
+        testResults: [...form.testResults, diseaseValue],
+      })
+    }
   }
 
   return (
@@ -210,28 +223,41 @@ export default function Step2MessageEditor({ form, updateForm, onNext, onBack }:
               transition={{ duration: 0.2 }}
               className="space-y-6"
             >
-              <div className="section-title">
-                <FlaskConical className="w-5 h-5 text-calm-600 shrink-0" />
-                <span>Type of disease</span>
-              </div>
               <div className="space-y-3">
-                {DISEASE_OPTIONS.map((option) => {
-                  const selected = form.testResult === option.value
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => updateForm({ testResult: option.value })}
-                      className={`w-full text-left rounded-2xl border px-4 py-3 transition-all ${
-                        selected
-                          ? 'border-calm-400 bg-calm-50/90 shadow-soft text-calm-800'
-                          : 'border-white/60 bg-white/50 text-slate-700 hover:bg-white/70'
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  )
-                })}
+                <div className="section-title">
+                  <FlaskConical className="w-5 h-5 text-calm-600 shrink-0" />
+                  <span>Type of disease (select all that apply)</span>
+                </div>
+                <div className="space-y-3">
+                  {DISEASE_OPTIONS.map((option) => {
+                    const isSelected = form.testResults.includes(option.value)
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => toggleDisease(option.value)}
+                        className={`w-full text-left rounded-2xl border px-4 py-3 transition-all flex items-center gap-3 ${
+                          isSelected
+                            ? 'border-calm-400 bg-calm-50/90 shadow-soft'
+                            : 'border-white/60 bg-white/50 hover:bg-white/70'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                          isSelected
+                            ? 'border-calm-500 bg-calm-500'
+                            : 'border-slate-300'
+                        }`}>
+                          {isSelected && <Check className="w-4 h-4 text-white" />}
+                        </div>
+                        <span className={`font-medium ${
+                          isSelected ? 'text-calm-800' : 'text-slate-700'
+                        }`}>
+                          {option.label}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
             </motion.div>
           )}
