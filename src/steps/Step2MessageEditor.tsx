@@ -18,7 +18,7 @@ const RELATIONSHIP_OPTIONS = [
   {
     value: 'future_partner',
     label: 'Future partner',
-    description: '',
+    description: 'Situationships, vibes, it\'s complicated, etc.',
   },
 ] as const
 
