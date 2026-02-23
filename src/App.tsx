@@ -103,9 +103,9 @@ function App() {
         {form.step === 2 && (
           <motion.div
             key="step2"
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 1, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
+            exit={{ opacity: 1, x: -20 }}
             transition={{ duration: 0.3 }}
           >
             <Step2MessageEditor
@@ -124,9 +124,9 @@ function App() {
         {form.step === 3 && (
           <motion.div
             key="step3"
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 1, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
+            exit={{ opacity: 1, x: -20 }}
             transition={{ duration: 0.3 }}
           >
             <Step3KitSponsorship
@@ -146,9 +146,9 @@ function App() {
         {form.step === 4 && (
           <motion.div
             key="step4"
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 1, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
+            exit={{ opacity: 1, x: -20 }}
             transition={{ duration: 0.3 }}
           >
             <Step4MessagePreview
@@ -165,9 +165,9 @@ function App() {
         {form.step === 5 && (
           <motion.div
             key="step5"
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 1, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0 }}
+            exit={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
           >
             <Step5Completion
