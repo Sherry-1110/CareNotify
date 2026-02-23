@@ -21,25 +21,25 @@ type AttachmentGuidance = {
 
 const ATTACHMENT_GUIDANCE: Record<Exclude<AttachmentKey, ''>, AttachmentGuidance> = {
   anxious: {
-    tip: "Tip: Your draft isn't wrong. However, with an anxious partner, clarity and reassurance can really help prevent spiraling. Some parts might unintentionally feel like an indirect accusation. It could help to remove any implied blame, keep the focus on health, and clearly signal that the relationship is safe.",
+    tip: "Your draft isn't wrong. However, with an anxious partner, clarity and reassurance can really help prevent spiraling. Some parts might unintentionally feel like an indirect accusation. It could help to remove any implied blame, keep the focus on health, and clearly signal that the relationship is safe.",
   },
   secure: {
-    tip: "Tip: Your draft isn't wrong. However, with a secure partner, direct and transparent wording with clear next steps usually works well. It could help to stay factual, keep the focus on health, and frame this as collaboration instead of blame.",
+    tip: "Your draft isn't wrong. However, with a secure partner, direct and transparent wording with clear next steps usually works well. It could help to stay factual, keep the focus on health, and frame this as collaboration instead of blame.",
   },
   avoidant: {
-    tip: "Tip: Your draft isn't wrong. However, with an avoidant partner, concise and non-pressuring language can reduce shutdown. It could help to remove emotionally loaded wording, keep the focus on health, and avoid any implied blame.",
+    tip: "Your draft isn't wrong. However, with an avoidant partner, concise and non-pressuring language can reduce shutdown. It could help to remove emotionally loaded wording, keep the focus on health, and avoid any implied blame.",
   },
   disorganized: {
-    tip: "Tip: Your draft isn't wrong. However, with a disorganized partner, calm and consistent wording can make the conversation feel safer. It could help to remove implied blame, keep the focus on health, and clearly reinforce emotional safety.",
+    tip: "Your draft isn't wrong. However, with a disorganized partner, calm and consistent wording can make the conversation feel safer. It could help to remove implied blame, keep the focus on health, and clearly reinforce emotional safety.",
   },
 }
 
 const FALLBACK_GUIDANCE: AttachmentGuidance = {
-  tip: "Tip: Your draft isn't wrong. It could help to keep the message clear, non-blaming, and focused on shared health.",
+  tip: "Your draft isn't wrong. It could help to keep the message clear, non-blaming, and focused on shared health.",
 }
 
-const POSITIVE_NOTE_LEAD = `"You're taking a positive step.`
-const POSITIVE_NOTE_BODY = 'Being open about sexual health builds trust and keeps everyone safe."'
+const POSITIVE_NOTE_LEAD = `You're taking a positive step.`
+const POSITIVE_NOTE_BODY = 'Being open about sexual health builds trust and keeps everyone safe.'
 
 function getDefaultMessage(form: FormState): string {
   const name = form.partnerName || '*insert partner name*'
