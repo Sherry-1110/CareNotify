@@ -31,6 +31,28 @@ function normalizeString(value) {
   return typeof value === 'string' ? value.trim() : ''
 }
 
+/** Extract message from OpenAI response (Responses API or Chat Completions API). */
+function extractMessage(data) {
+  if (!data) return ''
+  const s = normalizeString(data.output_text)
+  if (s) return s
+  const output = data.output
+  if (Array.isArray(output)) {
+    for (const item of output) {
+      const content = item?.content
+      if (Array.isArray(content)) {
+        for (const c of content) {
+          if (c?.type === 'output_text' && c?.text) return normalizeString(c.text)
+          if (c?.text) return normalizeString(c.text)
+        }
+      }
+    }
+  }
+  const choice = data.choices?.[0]
+  if (choice?.message?.content) return normalizeString(choice.message.content)
+  return ''
+}
+
 function setCors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
@@ -143,7 +165,7 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json()
-    const message = normalizeString(data?.output_text)
+    const message = extractMessage(data)
 
     if (!message) {
       res.status(502).json({ error: 'Model returned an empty response.' })
