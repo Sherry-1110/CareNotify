@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Copy, Lightbulb, LoaderCircle, MessageCircle, Phone, Share2, Shield, Sparkles } from 'lucide-react'
+import { ArrowLeft, Copy, Lightbulb, LoaderCircle, MessageCircle, Phone, Shield, Sparkles } from 'lucide-react'
 import type { FormState } from '../App'
 import { generateMessageFromForm, getDefaultMessage } from '../lib/messageGenerator'
 
@@ -45,7 +45,6 @@ export default function Step5Completion({ form, isGuest, onBack, onLogCopy, onLo
   const [generatedMessage, setGeneratedMessage] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [generationError, setGenerationError] = useState('')
-  const communicationLabel = form.communicationPreference === 'call' ? 'Call' : 'Text'
   const guidance = ATTACHMENT_GUIDANCE[form.attachmentStyle as Exclude<AttachmentKey, ''>] ?? FALLBACK_GUIDANCE
 
   const fallbackMessage = form.messageText.trim() || getDefaultMessage(form)
@@ -93,20 +92,19 @@ export default function Step5Completion({ form, isGuest, onBack, onLogCopy, onLo
         transition={{ duration: 0.4 }}
         className="flex flex-col items-center space-y-8 w-full"
       >
-        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-calm-400/90 to-calm-600 flex items-center justify-center border border-white/40 shadow-soft">
-          <Share2 className="w-10 h-10 text-white" />
-        </div>
-
         <div className="w-full text-center">
-          <h2 className="text-2xl font-bold tracking-tight text-calm-900">You're almost done</h2>
-          <p className="text-sm text-calm-700/90 mt-1 leading-relaxed">
-            You can copy or send your message to your partner using any option below.
-            {' '}Preferred communication: <span className="font-medium">{communicationLabel}</span>.
-            {form.sponsorKit && " If you're sponsoring a kit, you can complete that here when you're ready."}
-          </p>
+          <h2 className="text-2xl font-bold tracking-tight text-calm-900">You're all set!</h2>
         </div>
 
         <div className="w-full space-y-4">
+          <div className="text-left px-1">
+            <div className="flex items-center gap-2 text-calm-700/80">
+              <Lightbulb className="w-3.5 h-3.5" />
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em]">Tip</p>
+            </div>
+            <p className="mt-1 text-xs leading-relaxed text-slate-600">{guidance.tip}</p>
+          </div>
+
           <div className="rounded-2xl bg-white/50 backdrop-blur p-4 border border-white/50 text-left">
             <div className="flex items-center justify-between gap-3 mb-2">
               <p className="text-xs font-medium text-slate-500">Personalized message</p>
@@ -193,25 +191,13 @@ export default function Step5Completion({ form, isGuest, onBack, onLogCopy, onLo
             </motion.button>
           )}
 
-          <div className="relative overflow-hidden rounded-3xl border border-calm-200/70 bg-gradient-to-br from-white/90 via-calm-50/80 to-white/80 p-5 text-left shadow-soft">
-            <div className="pointer-events-none absolute -top-16 -right-10 h-40 w-40 rounded-full bg-calm-200/40 blur-2xl" />
-            <div className="relative space-y-4">
-              <div className="rounded-2xl border border-white/80 bg-white/75 p-4 backdrop-blur">
-                <div className="mb-2 flex items-center gap-2 text-calm-700">
-                  <Lightbulb className="w-4 h-4" />
-                  <p className="text-xs font-semibold uppercase tracking-[0.08em]">Tip</p>
-                </div>
-                <p className="text-sm leading-relaxed text-slate-700">{guidance.tip}</p>
-              </div>
-              <div className="rounded-2xl border border-calm-200/70 bg-gradient-to-br from-calm-50/80 to-white/95 p-4">
-                <div className="mb-2 flex items-center gap-2 text-calm-700">
-                  <Sparkles className="w-4 h-4" />
-                  <p className="text-xs font-semibold uppercase tracking-[0.08em]">Positive Note</p>
-                </div>
-                <p className="text-xl leading-tight font-bold text-slate-800">{POSITIVE_NOTE_LEAD}</p>
-                <p className="mt-1 text-sm leading-relaxed font-medium text-slate-600">{POSITIVE_NOTE_BODY}</p>
-              </div>
+          <div className="rounded-2xl border border-calm-200/70 bg-gradient-to-br from-calm-50/80 to-white/95 p-4 text-left shadow-soft">
+            <div className="mb-2 flex items-center gap-2 text-calm-700">
+              <Sparkles className="w-4 h-4" />
+              <p className="text-xs font-semibold uppercase tracking-[0.08em]">Positive Note</p>
             </div>
+            <p className="text-xl leading-tight font-bold text-slate-800">{POSITIVE_NOTE_LEAD}</p>
+            <p className="mt-1 text-sm leading-relaxed font-medium text-slate-600">{POSITIVE_NOTE_BODY}</p>
           </div>
 
           <motion.button
