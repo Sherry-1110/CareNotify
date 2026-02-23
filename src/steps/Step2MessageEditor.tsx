@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Check, ExternalLink, FlaskConical, Gift, Upload, User, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, ExternalLink, FlaskConical, Gift, Upload, Users, X } from 'lucide-react'
 import type { ChangeEvent } from 'react'
 import type { FormState } from '../App'
 
@@ -155,7 +155,7 @@ export default function Step2MessageEditor({
             >
               <div>
                 <div className="section-title">
-                  <User className="w-5 h-5 text-calm-600 shrink-0" />
+                  <Users className="w-5 h-5 text-calm-600 shrink-0" />
                   <span>Who would you like to send this to?</span>
                 </div>
                 <input
@@ -261,10 +261,20 @@ export default function Step2MessageEditor({
                   <Upload className="w-5 h-5 text-calm-600 shrink-0" />
                   <span>About your relationship</span>
                 </div>
+                <h3 className="section-title">What is your partner's attachment style?</h3>
+                <a
+                  href="https://example.com" //ask client's input on resource link for this
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-calm-600 hover:text-calm-700 underline flex items-center gap-1 mt-1 mb-3"
+                >
+                  Learn more
+                  <ExternalLink className="w-3 h-3" />
+                </a>
                 <p className="text-sm text-slate-600 mb-3">
-                  Can you help provide some context of your last interaction with them?
-                  Upload screenshots or photos (max 2 files).
+                  Can you help provide some context of your last interaction with them? We will determined your attachment style based on the information you provided.
                 </p>
+                <p className="text-sm text-slate-600 mb-3">Upload screenshots or photos (max 2 files).</p>
                 <label className="w-full rounded-2xl border border-dashed border-calm-300/80 bg-white/40 hover:bg-white/60 transition-colors p-4 flex flex-col items-center justify-center gap-2 text-center cursor-pointer">
                   <Upload className="w-5 h-5 text-calm-600" />
                   <span className="text-sm font-medium text-slate-700">Upload context files</span>
@@ -298,39 +308,6 @@ export default function Step2MessageEditor({
                     ))}
                   </div>
                 )}
-              </div>
-
-              <div>
-                <h3 className="section-title">What is your partner's attachment style?</h3>
-                <a
-                  href="https://example.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-calm-600 hover:text-calm-700 underline flex items-center gap-1 mt-1 mb-3"
-                >
-                  Learn more
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-                <div className="space-y-3">
-                  {ATTACHMENT_STYLE_OPTIONS.map((option) => {
-                    const selected = form.attachmentStyle === option.value
-                    return (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => updateForm({ attachmentStyle: option.value })}
-                        className={`w-full text-left rounded-2xl border p-4 transition-all ${
-                          selected
-                            ? 'border-calm-400 bg-calm-50/90 shadow-soft'
-                            : 'border-white/60 bg-white/50 hover:bg-white/70'
-                        }`}
-                      >
-                        <p className="font-medium text-slate-800">{option.label}</p>
-                        <p className="text-sm text-slate-600 mt-1">{option.description}</p>
-                      </button>
-                    )
-                  })}
-                </div>
               </div>
             </motion.div>
           )}
