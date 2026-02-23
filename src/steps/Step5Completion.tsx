@@ -144,7 +144,6 @@ export default function Step5Completion({ form, updateForm, isGuest, onBack, onL
             className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white/70 text-slate-700 font-medium hover:bg-white hover:shadow-md transition-all border border-slate-200"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to kit sponsorship
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.02 }}

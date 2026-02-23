@@ -387,10 +387,9 @@ export default function Step2MessageEditor({
               type="button"
               whileTap={{ scale: 0.98 }}
               onClick={onBack}
-              className="px-5 py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all flex items-center gap-2"
+              className="px-5 py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all flex items-center justify-center"
             >
               <ArrowLeft className="w-5 h-5" />
-              Back
             </motion.button>
           )}
           {popupStep > 1 && (
@@ -398,10 +397,9 @@ export default function Step2MessageEditor({
               type="button"
               whileTap={{ scale: 0.98 }}
               onClick={() => setPopupStep((prev) => (prev - 1) as 1 | 2 | 3 | 4)}
-              className="px-5 py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all flex items-center gap-2"
+              className="px-5 py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all flex items-center justify-center"
             >
               <ArrowLeft className="w-5 h-5" />
-              Back
             </motion.button>
           )}
           <motion.button
@@ -409,9 +407,8 @@ export default function Step2MessageEditor({
             whileTap={{ scale: 0.99 }}
             onClick={handleNext}
             disabled={!canContinue}
-            className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-primary text-white font-medium shadow-soft border border-white/20 hover:shadow-lg transition-shadow disabled:opacity-60 disabled:cursor-not-allowed"
+            className="flex-1 flex items-center justify-center py-4 rounded-2xl bg-gradient-primary text-white font-medium shadow-soft border border-white/20 hover:shadow-lg transition-shadow disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {popupStep === 4 ? 'Continue' : 'Next'}
             <ArrowRight className="w-5 h-5" />
           </motion.button>
         </div>
