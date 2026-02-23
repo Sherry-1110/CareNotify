@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Check, ExternalLink, FlaskConical, Upload, User, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, ExternalLink, FlaskConical, Gift, Upload, User, X } from 'lucide-react'
 import type { ChangeEvent } from 'react'
 import type { FormState } from '../App'
 
@@ -59,7 +59,7 @@ const ATTACHMENT_STYLE_OPTIONS = [
 type Step2MessageEditorProps = {
   form: FormState
   updateForm: (u: Partial<FormState>) => void
-  initialPage?: 1 | 2 | 3 | 4
+  initialPage?: 1 | 2 | 3 | 4 | 5
   onNext: () => void
   onBack: () => void
 }
@@ -71,7 +71,7 @@ export default function Step2MessageEditor({
   onNext,
   onBack,
 }: Step2MessageEditorProps) {
-  const [popupStep, setPopupStep] = useState<1 | 2 | 3 | 4>(initialPage)
+  const [popupStep, setPopupStep] = useState<1 | 2 | 3 | 4 | 5>(initialPage)
   const [hasInteractedWithStiSelection, setHasInteractedWithStiSelection] = useState(false)
 
   const canContinue = popupStep === 1
@@ -80,12 +80,12 @@ export default function Step2MessageEditor({
       ? form.testResults.length > 0
       : popupStep === 3
         ? Boolean(form.attachmentStyle)
-        : true // Page 4 is optional, always can continue
+        : true // Pages 4 and 5 are optional, always can continue
 
   const handleNext = () => {
     if (!canContinue) return
-    if (popupStep < 4) {
-      setPopupStep((prev) => (prev + 1) as 1 | 2 | 3 | 4)
+    if (popupStep < 5) {
+      setPopupStep((prev) => (prev + 1) as 1 | 2 | 3 | 4 | 5)
       return
     }
     onNext()
@@ -359,6 +359,57 @@ export default function Step2MessageEditor({
               </div>
             </motion.div>
           )}
+
+          {popupStep === 5 && (
+            <motion.div
+              key="popup-5"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-6"
+            >
+              <p className="text-sm text-slate-600 text-left px-1">
+                Offering a testing kit shifts the conversation from accusation to a gift of care.
+              </p>
+
+              <motion.div
+                whileTap={{ scale: 0.99 }}
+                onClick={() => updateForm({ sponsorKit: !form.sponsorKit })}
+                className={`rounded-3xl p-6 cursor-pointer transition-all border ${
+                  form.sponsorKit
+                    ? 'glass border-calm-400/50 bg-gradient-to-br from-calm-50/90 to-white/70 shadow-soft'
+                    : 'glass-card hover:bg-white/70'
+                }`}
+              >
+                <div className="flex items-start gap-4">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+                    form.sponsorKit ? 'bg-gradient-primary text-white border border-white/30' : 'bg-white/60 backdrop-blur text-calm-600 border border-white/50'
+                  }`}>
+                    <Gift className="w-6 h-6" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="font-semibold text-slate-800">Sponsor a testing kit</h3>
+                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                        form.sponsorKit ? 'border-calm-500 bg-gradient-primary' : 'border-slate-300 bg-white/40'
+                      }`}>
+                        {form.sponsorKit && <Check className="w-4 h-4 text-white" />}
+                      </div>
+                    </div>
+                    <p className="text-sm text-slate-600 mt-2">
+                      Offer to cover the cost of a testing kit so they can get tested at no cost. It shows you care and makes it easier for them to take the next step.
+                    </p>
+                    {form.sponsorKit && (
+                      <p className="mt-4 text-sm text-calm-700 rounded-xl glass-card px-4 py-3">
+                        You will complete payment in the summary. If they decline the kit, the fee will be refunded to your original payment method.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
         </AnimatePresence>
 
         <div className="flex items-center gap-3 w-full">
@@ -376,7 +427,7 @@ export default function Step2MessageEditor({
               <motion.button
                 type="button"
                 whileTap={{ scale: 0.98 }}
-                onClick={() => setPopupStep((prev) => (prev - 1) as 1 | 2 | 3 | 4)}
+                onClick={() => setPopupStep((prev) => (prev - 1) as 1 | 2 | 3 | 4 | 5)}
                 className="w-full flex items-center justify-center py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all"
               >
                 <ArrowLeft className="w-5 h-5 shrink-0" />

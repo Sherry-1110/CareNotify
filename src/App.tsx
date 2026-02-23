@@ -4,8 +4,6 @@ import { initFirebase, signInAsGuest } from './lib/firebase'
 import { logProgress } from './lib/logging'
 import Step1Auth from './steps/Step1Auth'
 import Step2MessageEditor from './steps/Step2MessageEditor'
-import Step3KitSponsorship from './steps/Step3KitSponsorship'
-import Step4MessagePreview from './steps/Step4MessagePreview'
 import Step5Completion from './steps/Step5Completion'
 
 export type FormState = {
@@ -41,7 +39,7 @@ const initialFormState: FormState = {
 function App() {
   const [form, setForm] = useState<FormState>(initialFormState)
   const [firebaseReady, setFirebaseReady] = useState(false)
-  const [step2InitialPage, setStep2InitialPage] = useState<1 | 2 | 3 | 4>(1)
+  const [step2InitialPage, setStep2InitialPage] = useState<1 | 2 | 3 | 4 | 5>(1)
 
   useEffect(() => {
     const fb = initFirebase()
@@ -84,7 +82,7 @@ function App() {
 
   return (
     <div className="min-h-screen app-bg">
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="sync">
         {form.step === 1 && (
           <motion.div
             key="step1"
@@ -114,51 +112,10 @@ function App() {
               initialPage={step2InitialPage}
               onNext={() => {
                 setStep2InitialPage(1)
-                logProgress(form.userId, 'step_3_start')
-                goToStep(3)
+                logProgress(form.userId, 'step_5_complete')
+                goToStep(5)
               }}
               onBack={() => goToStep(1)}
-            />
-          </motion.div>
-        )}
-        {form.step === 3 && (
-          <motion.div
-            key="step3"
-            initial={{ opacity: 1, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 1, x: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Step3KitSponsorship
-              form={form}
-              updateForm={updateForm}
-              onBack={() => {
-                setStep2InitialPage(4)
-                goToStep(2)
-              }}
-              onNext={() => {
-                logProgress(form.userId, 'step_5_complete')
-                goToStep(5)
-              }}
-            />
-          </motion.div>
-        )}
-        {form.step === 4 && (
-          <motion.div
-            key="step4"
-            initial={{ opacity: 1, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 1, x: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Step4MessagePreview
-              form={form}
-              updateForm={updateForm}
-              onBack={() => goToStep(3)}
-              onNext={() => {
-                logProgress(form.userId, 'step_5_complete')
-                goToStep(5)
-              }}
             />
           </motion.div>
         )}
@@ -174,7 +131,10 @@ function App() {
               form={form}
               updateForm={updateForm}
               isGuest={form.isGuest}
-              onBack={() => goToStep(3)}
+              onBack={() => {
+                setStep2InitialPage(5)
+                goToStep(2)
+              }}
               onLogCopy={() => logProgress(form.userId, 'step_5_copy')}
               onLogShare={() => logProgress(form.userId, 'step_5_share')}
             />

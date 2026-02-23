@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Copy, Lightbulb, MessageCircle, MessageSquare, Phone, Share2, Shield, Sparkles } from 'lucide-react'
+import { ArrowLeft, Copy, Lightbulb, MessageCircle, MessageSquare, Phone, Shield, Sparkles } from 'lucide-react'
 import type { FormState } from '../App'
 
 const TEST_LABELS: Record<string, string> = {
@@ -107,25 +107,17 @@ export default function Step5Completion({ form, updateForm, isGuest, onBack, onL
         transition={{ duration: 0.4 }}
         className="flex flex-col items-center space-y-8 w-full text-center"
       >
-        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-calm-400/90 to-calm-600 flex items-center justify-center border border-white/40 shadow-soft">
-          <Share2 className="w-10 h-10 text-white" />
-        </div>
         <div className="w-full text-center">
           <h2 className="text-2xl font-bold tracking-tight text-calm-900">You're all set!</h2>
-          <p className="text-sm text-calm-700/90 mt-1 leading-relaxed">
-            Preview and edit your message below, then copy or send it to your partner.
-            {form.sponsorKit && " If you're sponsoring a kit, you can complete that here when you're ready."}
-          </p>
         </div>
 
         <div className="w-full space-y-4">
-          <div className="rounded-2xl border border-calm-200/70 bg-gradient-to-br from-calm-50/80 to-white/95 p-4 text-left shadow-soft">
-            <div className="mb-2 flex items-center gap-2 text-calm-700">
-              <Sparkles className="w-4 h-4" />
-              <p className="text-xs font-semibold uppercase tracking-[0.08em]">Positive Note</p>
+          <div className="text-left px-1">
+            <div className="flex items-center gap-2 text-calm-700/80">
+              <Lightbulb className="w-3.5 h-3.5" />
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em]">Tip</p>
             </div>
-            <p className="text-xl leading-tight font-bold text-slate-800">{POSITIVE_NOTE_LEAD}</p>
-            <p className="mt-1 text-sm leading-relaxed font-medium text-slate-600">{POSITIVE_NOTE_BODY}</p>
+            <p className="mt-1 text-xs leading-relaxed text-slate-600">{guidance.tip}</p>
           </div>
 
           {/* Edit Message Section */}
@@ -140,13 +132,6 @@ export default function Step5Completion({ form, updateForm, isGuest, onBack, onL
               className="w-full px-4 py-3 rounded-2xl bg-white/95 border border-calm-300/80 shadow-lg shadow-calm-100/50 ring-1 ring-calm-200/60 focus:border-calm-500 focus:ring-2 focus:ring-calm-300/70 outline-none transition-all min-h-[200px] text-sm text-slate-700 resize-none"
               placeholder="Edit your message here..."
             />
-          </div>
-          <div className="text-left px-1">
-            <div className="flex items-center gap-2 text-calm-700/80">
-              <Lightbulb className="w-3.5 h-3.5" />
-              <p className="text-[11px] font-semibold uppercase tracking-[0.08em]">Tip</p>
-            </div>
-            <p className="mt-1 text-xs leading-relaxed text-slate-600">{guidance.tip}</p>
           </div>
 
           {/* Action Buttons */}
@@ -218,6 +203,15 @@ export default function Step5Completion({ form, updateForm, isGuest, onBack, onL
         >
           <ArrowLeft className="w-4 h-4" />
         </motion.button>
+
+        <div className="w-full rounded-2xl border border-calm-200/70 bg-gradient-to-br from-calm-50/80 to-white/95 p-4 text-left shadow-soft">
+          <div className="mb-2 flex items-center gap-2 text-calm-700">
+            <Sparkles className="w-4 h-4" />
+            <p className="text-xs font-semibold uppercase tracking-[0.08em]">Positive Note</p>
+          </div>
+          <p className="text-xl leading-tight font-bold text-slate-800">{POSITIVE_NOTE_LEAD}</p>
+          <p className="mt-1 text-sm leading-relaxed font-medium text-slate-600">{POSITIVE_NOTE_BODY}</p>
+        </div>
 
         {isGuest && (
           <motion.div
