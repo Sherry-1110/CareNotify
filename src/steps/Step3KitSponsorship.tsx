@@ -80,7 +80,7 @@ export default function Step3KitSponsorship({ form, updateForm, onBack, onNext }
             onClick={onNext}
             className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-primary text-white font-medium shadow-soft border border-white/20 hover:shadow-lg transition-shadow"
           >
-            Continue to preview message
+            Continue
             <ArrowRight className="w-5 h-5" />
           </motion.button>
         </div>

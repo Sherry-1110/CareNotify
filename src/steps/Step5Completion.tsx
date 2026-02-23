@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Copy, Lightbulb, MessageCircle, Phone, Share2, Shield, Sparkles } from 'lucide-react'
+import { ArrowLeft, Copy, Lightbulb, MessageCircle, MessageSquare, Phone, Share2, Shield, Sparkles } from 'lucide-react'
 import type { FormState } from '../App'
 
 const TEST_LABELS: Record<string, string> = {
@@ -62,16 +62,24 @@ function getDefaultMessage(form: FormState): string {
 
 type Step5CompletionProps = {
   form: FormState
+  updateForm: (u: Partial<FormState>) => void
   isGuest: boolean
   onBack: () => void
   onLogCopy: () => void
   onLogShare: () => void
 }
 
-export default function Step5Completion({ form, isGuest, onBack, onLogCopy, onLogShare }: Step5CompletionProps) {
+export default function Step5Completion({ form, updateForm, isGuest, onBack, onLogCopy, onLogShare }: Step5CompletionProps) {
   const [copied, setCopied] = useState(false)
   const communicationLabel = form.communicationPreference === 'call' ? 'Call' : 'Text'
   const guidance = ATTACHMENT_GUIDANCE[form.attachmentStyle as Exclude<AttachmentKey, ''>] ?? FALLBACK_GUIDANCE
+  
+  const templateMessage = useMemo(
+    () => getDefaultMessage(form),
+    [form.partnerName, form.testResults, form.sponsorKit]
+  )
+  
+  const currentMessage = form.messageText || templateMessage
   
   const messageToShare = useMemo(
     () => form.messageText.trim() || getDefaultMessage(form),
@@ -106,17 +114,28 @@ export default function Step5Completion({ form, isGuest, onBack, onLogCopy, onLo
         <div className="w-full text-center">
           <h2 className="text-2xl font-bold tracking-tight text-calm-900">You're all set!</h2>
           <p className="text-sm text-calm-700/90 mt-1 leading-relaxed">
-            You can copy or send your message to your partner using any option below.
+            Preview and edit your message below, then copy or send it to your partner.
             {' '}Preferred communication: <span className="font-medium">{communicationLabel}</span>.
             {form.sponsorKit && " If you're sponsoring a kit, you can complete that here when you're ready."}
           </p>
         </div>
 
         <div className="w-full space-y-4">
-          <div className="rounded-2xl bg-white/50 backdrop-blur p-4 border border-white/50 text-left">
-            <p className="text-xs font-medium text-slate-500 mb-2">Message preview</p>
-            <p className="text-sm text-slate-700 whitespace-pre-wrap">{messageToShare}</p>
+          {/* Edit Message Section */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-calm-600" />
+              <h3 className="font-semibold text-slate-800">Preview & edit your message</h3>
+            </div>
+            <textarea
+              value={currentMessage}
+              onChange={(e) => updateForm({ messageText: e.target.value })}
+              className="w-full px-4 py-3 rounded-2xl bg-white/60 backdrop-blur border border-white/60 focus:border-calm-400 focus:ring-2 focus:ring-calm-200/50 outline-none transition-all min-h-[200px] text-sm text-slate-700 resize-none"
+              placeholder="Edit your message here..."
+            />
           </div>
+
+          {/* Action Buttons */}
           <motion.button
             type="button"
             whileHover={{ scale: 1.01 }}
@@ -125,7 +144,7 @@ export default function Step5Completion({ form, isGuest, onBack, onLogCopy, onLo
             className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white/70 text-slate-700 font-medium hover:bg-white hover:shadow-md transition-all border border-slate-200"
           >
             <ArrowLeft className="w-4 h-4" />
-            Edit message
+            Back to kit sponsorship
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.02 }}

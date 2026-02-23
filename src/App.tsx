@@ -137,8 +137,8 @@ function App() {
                 goToStep(2)
               }}
               onNext={() => {
-                logProgress(form.userId, 'step_4_start')
-                goToStep(4)
+                logProgress(form.userId, 'step_5_complete')
+                goToStep(5)
               }}
             />
           </motion.div>
@@ -172,8 +172,9 @@ function App() {
           >
             <Step5Completion
               form={form}
+              updateForm={updateForm}
               isGuest={form.isGuest}
-              onBack={() => goToStep(4)}
+              onBack={() => goToStep(3)}
               onLogCopy={() => logProgress(form.userId, 'step_5_copy')}
               onLogShare={() => logProgress(form.userId, 'step_5_share')}
             />
