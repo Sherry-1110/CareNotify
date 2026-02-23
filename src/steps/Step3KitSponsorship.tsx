@@ -19,10 +19,21 @@ export default function Step3KitSponsorship({ form, updateForm, onBack, onNext }
       >
         <div className="page-header">
           <h2 className="page-header-title">Would you like to support their health?</h2>
-          <p className="page-header-desc">
-            Offering a testing kit shifts the conversation from accusation to a gift of care.
-          </p>
+          <p className="page-header-desc">Page 5 of 5</p>
         </div>
+
+        <div className="grid grid-cols-5 gap-2">
+          {[1, 2, 3, 4, 5].map((dot) => (
+            <div
+              key={dot}
+              className="h-2 rounded-full bg-calm-500"
+            />
+          ))}
+        </div>
+
+        <p className="text-sm text-slate-600 text-left px-1">
+          Offering a testing kit shifts the conversation from accusation to a gift of care.
+        </p>
 
         <motion.div
           whileTap={{ scale: 0.99 }}
