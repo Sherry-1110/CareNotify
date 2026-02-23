@@ -87,19 +87,29 @@ async function generateViaFrontendOpenAI(
   const communication = normalize(form.communicationPreference) || 'message'
   const diagnosis = getTestLabel(form.testResults)
   const attachmentStyle = normalize(form.attachmentStyle) || 'unspecified'
+  const additionalMessage = normalize(form.additionalMessage)
+
+  const promptParts = [
+    `Recipient name: ${partnerName}`,
+    `Relationship context: ${relationship}`,
+    `Preferred communication channel: ${communication}`,
+    `Diagnosis to disclose: ${diagnosis}`,
+    `Sender attachment style: ${attachmentStyle}`,
+  ]
+
+  if (additionalMessage) {
+    promptParts.push(`Additional context from sender: ${additionalMessage}`)
+  }
+
+  promptParts.push(
+    'Write one concise, respectful first-person disclosure message.',
+    'No blame, no legal language, no bullets, no emoji. 3-6 sentences.'
+  )
 
   const userContent: Array<{ type: 'input_text' | 'input_image'; text?: string; image_url?: string }> = [
     {
       type: 'input_text',
-      text: [
-        `Recipient name: ${partnerName}`,
-        `Relationship context: ${relationship}`,
-        `Preferred communication channel: ${communication}`,
-        `Diagnosis to disclose: ${diagnosis}`,
-        `Sender attachment style: ${attachmentStyle}`,
-        'Write one concise, respectful first-person disclosure message.',
-        'No blame, no legal language, no bullets, no emoji. 3-6 sentences.',
-      ].join('\n'),
+      text: promptParts.join('\n'),
     },
   ]
 
@@ -180,6 +190,7 @@ export async function generateMessageFromForm(form: FormState): Promise<string> 
       communicationPreference: form.communicationPreference,
       testResult: form.testResults[0] ?? '',
       attachmentStyle: form.attachmentStyle,
+      additionalMessage: form.additionalMessage,
       contextFiles,
     }),
   })

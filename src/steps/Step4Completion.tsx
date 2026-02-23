@@ -150,16 +150,6 @@ export default function Step4Completion({ form, isGuest, onLogCopy, onLogShare }
               </motion.a>
             </div>
           )}
-          {form.sponsorKit && (
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              className="w-full flex items-center justify-center gap-2 py-4 px-5 rounded-2xl bg-blue-500 text-white font-medium hover:bg-blue-600 hover:shadow-lg transition-all border border-blue-600/30"
-            >
-              Pay for kit
-            </motion.button>
-          )}
         </div>
 
         {isGuest && (
