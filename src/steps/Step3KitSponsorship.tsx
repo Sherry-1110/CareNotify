@@ -69,7 +69,7 @@ export default function Step3KitSponsorship({ form, updateForm, onBack, onNext }
             type="button"
             whileTap={{ scale: 0.98 }}
             onClick={onBack}
-            className="px-5 py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all flex items-center justify-center"
+            className="flex-1 flex items-center justify-center px-5 py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all"
           >
             <ArrowLeft className="w-5 h-5" />
           </motion.button>

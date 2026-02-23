@@ -84,7 +84,7 @@ export default function Step4MessagePreview({ form, updateForm, onBack, onNext }
             type="button"
             whileTap={{ scale: 0.98 }}
             onClick={onBack}
-            className="px-5 py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all flex items-center gap-2"
+            className="flex-1 flex items-center justify-center gap-2 px-5 py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all"
           >
             <ArrowLeft className="w-5 h-5" />
             Back
