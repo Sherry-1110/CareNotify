@@ -33,29 +33,6 @@ const DISEASE_OPTIONS = [
   { value: 'mycoplasma_genitalium', label: 'Mycoplasma Genitalium' },
 ] as const
 
-const ATTACHMENT_STYLE_OPTIONS = [
-  {
-    value: 'secure',
-    label: 'Secure',
-    description: 'Comfortable with intimacy and independence.',
-  },
-  {
-    value: 'anxious',
-    label: 'Anxious',
-    description: 'Craving closeness and fearing abandonment.',
-  },
-  {
-    value: 'avoidant',
-    label: 'Avoidant',
-    description: 'Valuing independence and emotionally distant.',
-  },
-  {
-    value: 'disorganized',
-    label: 'Disorganized',
-    description: 'Conflicted and fearful behavior patterns.',
-  },
-] as const
-
 type Step2MessageEditorProps = {
   form: FormState
   updateForm: (u: Partial<FormState>) => void

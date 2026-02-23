@@ -131,10 +131,6 @@ function App() {
               form={form}
               updateForm={updateForm}
               isGuest={form.isGuest}
-              onBack={() => {
-                setStep2InitialPage(5)
-                goToStep(2)
-              }}
               onLogCopy={() => logProgress(form.userId, 'step_5_copy')}
               onLogShare={() => logProgress(form.userId, 'step_5_share')}
             />
