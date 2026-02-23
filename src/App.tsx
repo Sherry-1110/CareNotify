@@ -29,7 +29,7 @@ const initialFormState: FormState = {
   userId: null,
   partnerName: '',
   partnerRelationship: '',
-  communicationPreference: '',
+  communicationPreference: 'text',
   testResults: [],
   attachmentStyle: '',
   lastInteractionFiles: [],

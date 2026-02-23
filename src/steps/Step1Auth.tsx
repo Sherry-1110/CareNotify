@@ -85,7 +85,8 @@ export default function Step1Auth({ onGuestContinue, onSignInSuccess, firebaseRe
           <span className="text-[#4FB39B]">Notify</span>
         </h1>
         <p className="text-slate-600 text-base leading-relaxed mb-10">
-          Notify with care. We help you share health information in a supportive way.
+          We help you share health information in a supportive way by building a message you are comfortable to share.
+
         </p>
 
         <div className="w-full space-y-4">
@@ -154,119 +155,119 @@ export default function Step1Auth({ onGuestContinue, onSignInSuccess, firebaseRe
                     Sign up / login needs Firebase. Copy <code className="bg-white/60 px-1 rounded">.env.example</code> to <code className="bg-white/60 px-1 rounded">.env</code> and add your Firebase keys (see Firebase Console → project settings).
                   </p>
                 ) : (
-                <div className="space-y-4">
-                  <div className="flex gap-2 p-1.5 rounded-xl bg-white/50 backdrop-blur border border-white/50">
-                    <button
-                      type="button"
-                      onClick={() => setIsSignUp(true)}
-                      className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${isSignUp ? 'bg-white/90 text-slate-800 shadow-sm' : 'text-slate-600 hover:text-slate-700'}`}
-                    >
-                      Sign up
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIsSignUp(false)}
-                      className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${!isSignUp ? 'bg-white/90 text-slate-800 shadow-sm' : 'text-slate-600 hover:text-slate-700'}`}
-                    >
-                      Sign in
-                    </button>
-                  </div>
+                  <div className="space-y-4">
+                    <div className="flex gap-2 p-1.5 rounded-xl bg-white/50 backdrop-blur border border-white/50">
+                      <button
+                        type="button"
+                        onClick={() => setIsSignUp(true)}
+                        className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${isSignUp ? 'bg-white/90 text-slate-800 shadow-sm' : 'text-slate-600 hover:text-slate-700'}`}
+                      >
+                        Sign up
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsSignUp(false)}
+                        className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${!isSignUp ? 'bg-white/90 text-slate-800 shadow-sm' : 'text-slate-600 hover:text-slate-700'}`}
+                      >
+                        Sign in
+                      </button>
+                    </div>
 
-                  <motion.form onSubmit={handleSubmit} className="space-y-3">
-                    {isSignUp && (
-                      <>
-                        <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-1">Name</label>
-                          <div className="relative">
-                            <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                            <input
-                              type="text"
-                              value={name}
-                              onChange={(e) => setName(e.target.value)}
-                              placeholder="Your name"
-                              className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white/60 backdrop-blur border border-white/60 focus:border-calm-400 focus:ring-2 focus:ring-calm-200/50 outline-none transition-all"
-                            />
+                    <motion.form onSubmit={handleSubmit} className="space-y-3">
+                      {isSignUp && (
+                        <>
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Name</label>
+                            <div className="relative">
+                              <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                              <input
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="Your name"
+                                className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white/60 backdrop-blur border border-white/60 focus:border-calm-400 focus:ring-2 focus:ring-calm-200/50 outline-none transition-all"
+                              />
+                            </div>
                           </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-1">Phone</label>
-                          <div className="relative">
-                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                            <input
-                              type="tel"
-                              value={phone}
-                              onChange={(e) => setPhone(e.target.value)}
-                              placeholder="+1 234 567 8900"
-                              className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white/60 backdrop-blur border border-white/60 focus:border-calm-400 focus:ring-2 focus:ring-calm-200/50 outline-none transition-all"
-                            />
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Phone</label>
+                            <div className="relative">
+                              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                              <input
+                                type="tel"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                placeholder="+1 234 567 8900"
+                                className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white/60 backdrop-blur border border-white/60 focus:border-calm-400 focus:ring-2 focus:ring-calm-200/50 outline-none transition-all"
+                              />
+                            </div>
                           </div>
+                        </>
+                      )}
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            placeholder="you@example.com"
+                            className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white/60 backdrop-blur border border-white/60 focus:border-calm-400 focus:ring-2 focus:ring-calm-200/50 outline-none transition-all"
+                          />
                         </div>
-                      </>
-                    )}
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                        <input
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          required
-                          placeholder="you@example.com"
-                          className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white/60 backdrop-blur border border-white/60 focus:border-calm-400 focus:ring-2 focus:ring-calm-200/50 outline-none transition-all"
-                        />
                       </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                        <input
-                          type="password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          required
-                          minLength={6}
-                          placeholder="••••••••"
-                          className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white/60 backdrop-blur border border-white/60 focus:border-calm-400 focus:ring-2 focus:ring-calm-200/50 outline-none transition-all"
-                        />
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            minLength={6}
+                            placeholder="••••••••"
+                            className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white/60 backdrop-blur border border-white/60 focus:border-calm-400 focus:ring-2 focus:ring-calm-200/50 outline-none transition-all"
+                          />
+                        </div>
                       </div>
+                      {error && (
+                        <p className="text-sm text-red-600 bg-red-50/80 backdrop-blur rounded-xl px-3 py-2 border border-red-200/50">{error}</p>
+                      )}
+                      <motion.button
+                        type="submit"
+                        disabled={loading}
+                        whileTap={{ scale: 0.98 }}
+                        className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-primary text-white font-medium shadow-soft border border-white/20 disabled:opacity-70 hover:shadow-lg transition-shadow"
+                      >
+                        {loading ? 'Please wait…' : isSignUp ? 'Create account' : 'Sign in'}
+                      </motion.button>
+                    </motion.form>
+
+                    <div className="flex items-center gap-3 py-2">
+                      <div className="flex-1 border-t border-slate-200" />
+                      <span className="text-sm text-slate-500 shrink-0">or continue with</span>
+                      <div className="flex-1 border-t border-slate-200" />
                     </div>
-                    {error && (
-                      <p className="text-sm text-red-600 bg-red-50/80 backdrop-blur rounded-xl px-3 py-2 border border-red-200/50">{error}</p>
-                    )}
+
                     <motion.button
-                      type="submit"
-                      disabled={loading}
+                      type="button"
                       whileTap={{ scale: 0.98 }}
-                      className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-primary text-white font-medium shadow-soft border border-white/20 disabled:opacity-70 hover:shadow-lg transition-shadow"
+                      onClick={handleGoogleSignIn}
+                      disabled={!!socialLoading}
+                      className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-white/80 backdrop-blur border border-white/60 text-slate-700 font-medium hover:bg-white transition-all disabled:opacity-60"
                     >
-                      {loading ? 'Please wait…' : isSignUp ? 'Create account' : 'Sign in'}
+                      <svg className="w-5 h-5" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                      </svg>
+                      Continue with Google
                     </motion.button>
-                  </motion.form>
-
-                  <div className="flex items-center gap-3 py-2">
-                    <div className="flex-1 border-t border-slate-200" />
-                    <span className="text-sm text-slate-500 shrink-0">or continue with</span>
-                    <div className="flex-1 border-t border-slate-200" />
                   </div>
-
-                  <motion.button
-                    type="button"
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handleGoogleSignIn}
-                    disabled={!!socialLoading}
-                    className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-white/80 backdrop-blur border border-white/60 text-slate-700 font-medium hover:bg-white transition-all disabled:opacity-60"
-                  >
-                    <svg className="w-5 h-5" viewBox="0 0 24 24">
-                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                    </svg>
-                    Continue with Google
-                  </motion.button>
-                </div>
                 )}
               </div>
             </motion.div>

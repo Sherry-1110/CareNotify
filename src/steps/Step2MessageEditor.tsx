@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Check, ExternalLink, FlaskConical, MessageCircle, Phone, Upload, User, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, ExternalLink, FlaskConical, Upload, User, X } from 'lucide-react'
 import type { ChangeEvent } from 'react'
 import type { FormState } from '../App'
 
@@ -20,11 +20,6 @@ const RELATIONSHIP_OPTIONS = [
     label: 'Future partner',
     description: 'Situationships, vibes, it\'s complicated, etc.',
   },
-] as const
-
-const COMMUNICATION_OPTIONS = [
-  { value: 'text', label: 'Text', icon: MessageCircle },
-  { value: 'call', label: 'Call', icon: Phone },
 ] as const
 
 const DISEASE_OPTIONS = [
@@ -80,7 +75,7 @@ export default function Step2MessageEditor({
   const [hasInteractedWithStiSelection, setHasInteractedWithStiSelection] = useState(false)
 
   const canContinue = popupStep === 1
-    ? Boolean(form.partnerName.trim() && form.partnerRelationship && form.communicationPreference)
+    ? Boolean(form.partnerName.trim() && form.partnerRelationship)
     : popupStep === 2
       ? form.testResults.length > 0
       : popupStep === 3
@@ -198,30 +193,6 @@ export default function Step2MessageEditor({
                 </div>
               </div>
 
-              <div>
-                <h3 className="section-title">How would you like to communicate?</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {COMMUNICATION_OPTIONS.map((option) => {
-                    const Icon = option.icon
-                    const selected = form.communicationPreference === option.value
-                    return (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => updateForm({ communicationPreference: option.value })}
-                        className={`rounded-2xl border p-4 flex items-center gap-3 transition-all ${
-                          selected
-                            ? 'border-calm-400 bg-calm-50/90 text-calm-800 shadow-soft'
-                            : 'border-white/60 bg-white/50 text-slate-700 hover:bg-white/70'
-                        }`}
-                      >
-                        <Icon className="w-5 h-5" />
-                        <span className="font-medium">{option.label}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
             </motion.div>
           )}
 

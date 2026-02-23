@@ -71,7 +71,6 @@ type Step5CompletionProps = {
 
 export default function Step5Completion({ form, updateForm, isGuest, onBack, onLogCopy, onLogShare }: Step5CompletionProps) {
   const [copied, setCopied] = useState(false)
-  const communicationLabel = form.communicationPreference === 'call' ? 'Call' : 'Text'
   const guidance = ATTACHMENT_GUIDANCE[form.attachmentStyle as Exclude<AttachmentKey, ''>] ?? FALLBACK_GUIDANCE
   
   const templateMessage = useMemo(
@@ -115,7 +114,6 @@ export default function Step5Completion({ form, updateForm, isGuest, onBack, onL
           <h2 className="text-2xl font-bold tracking-tight text-calm-900">You're all set!</h2>
           <p className="text-sm text-calm-700/90 mt-1 leading-relaxed">
             Preview and edit your message below, then copy or send it to your partner.
-            {' '}Preferred communication: <span className="font-medium">{communicationLabel}</span>.
             {form.sponsorKit && " If you're sponsoring a kit, you can complete that here when you're ready."}
           </p>
         </div>
