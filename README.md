@@ -68,3 +68,14 @@ npm run build
 ```
 
 Output in `dist/`.
+
+## Deploy to Vercel
+
+1. Push the repo to GitHub (if not already).
+2. Go to [vercel.com](https://vercel.com) → **Add New Project** → import the **CareNotify** repo.
+3. Leave **Build Command** as `npm run build`, **Output Directory** as `dist` (Vercel uses `vercel.json`).
+4. In **Environment Variables**, add:
+   - **Name:** `OPENAI_API_KEY`  
+   - **Value:** your OpenAI API key  
+   (Add for Production, Preview, Development if you want.)
+5. Click **Deploy**. The site and `/api/generate-message`, `/api/generate-guidance` will be served from the same domain; the frontend will call them with relative URLs, so no extra config is needed.
