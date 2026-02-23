@@ -129,11 +129,11 @@ export default function Step2MessageEditor({
       >
         <div className="page-header">
           <h2 className="page-header-title">Message & partner info</h2>
-          <p className="page-header-desc">Page {popupStep} of 4</p>
+          <p className="page-header-desc">Page {popupStep} of 5</p>
         </div>
 
-        <div className="grid grid-cols-4 gap-2">
-          {[1, 2, 3, 4].map((dot) => (
+        <div className="grid grid-cols-5 gap-2">
+          {[1, 2, 3, 4, 5].map((dot) => (
             <div
               key={dot}
               className={`h-2 rounded-full transition-all ${

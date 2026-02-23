@@ -21,25 +21,25 @@ type AttachmentGuidance = {
 
 const ATTACHMENT_GUIDANCE: Record<Exclude<AttachmentKey, ''>, AttachmentGuidance> = {
   anxious: {
-    tip: "Tip: Your draft isn't wrong. However, with an anxious partner, clarity and reassurance can really help prevent spiraling. Some parts might unintentionally feel like an indirect accusation. It could help to remove any implied blame, keep the focus on health, and clearly signal that the relationship is safe.",
+    tip: "Your draft isn't wrong. However, with an anxious partner, clarity and reassurance can really help prevent spiraling. Some parts might unintentionally feel like an indirect accusation. It could help to remove any implied blame, keep the focus on health, and clearly signal that the relationship is safe.",
   },
   secure: {
-    tip: "Tip: Your draft isn't wrong. However, with a secure partner, direct and transparent wording with clear next steps usually works well. It could help to stay factual, keep the focus on health, and frame this as collaboration instead of blame.",
+    tip: "Your draft isn't wrong. However, with a secure partner, direct and transparent wording with clear next steps usually works well. It could help to stay factual, keep the focus on health, and frame this as collaboration instead of blame.",
   },
   avoidant: {
-    tip: "Tip: Your draft isn't wrong. However, with an avoidant partner, concise and non-pressuring language can reduce shutdown. It could help to remove emotionally loaded wording, keep the focus on health, and avoid any implied blame.",
+    tip: "Your draft isn't wrong. However, with an avoidant partner, concise and non-pressuring language can reduce shutdown. It could help to remove emotionally loaded wording, keep the focus on health, and avoid any implied blame.",
   },
   disorganized: {
-    tip: "Tip: Your draft isn't wrong. However, with a disorganized partner, calm and consistent wording can make the conversation feel safer. It could help to remove implied blame, keep the focus on health, and clearly reinforce emotional safety.",
+    tip: "Your draft isn't wrong. However, with a disorganized partner, calm and consistent wording can make the conversation feel safer. It could help to remove implied blame, keep the focus on health, and clearly reinforce emotional safety.",
   },
 }
 
 const FALLBACK_GUIDANCE: AttachmentGuidance = {
-  tip: "Tip: Your draft isn't wrong. It could help to keep the message clear, non-blaming, and focused on shared health.",
+  tip: "Your draft isn't wrong. It could help to keep the message clear, non-blaming, and focused on shared health.",
 }
 
-const POSITIVE_NOTE_LEAD = `"You're taking a positive step.`
-const POSITIVE_NOTE_BODY = 'Being open about sexual health builds trust and keeps everyone safe."'
+const POSITIVE_NOTE_LEAD = "You're taking a positive step."
+const POSITIVE_NOTE_BODY = 'Being open about sexual health builds trust and keeps everyone safe.'
 
 function getDefaultMessage(form: FormState): string {
   const name = form.partnerName || '*insert partner name*'
@@ -119,6 +119,15 @@ export default function Step5Completion({ form, updateForm, isGuest, onBack, onL
         </div>
 
         <div className="w-full space-y-4">
+          <div className="rounded-2xl border border-calm-200/70 bg-gradient-to-br from-calm-50/80 to-white/95 p-4 text-left shadow-soft">
+            <div className="mb-2 flex items-center gap-2 text-calm-700">
+              <Sparkles className="w-4 h-4" />
+              <p className="text-xs font-semibold uppercase tracking-[0.08em]">Positive Note</p>
+            </div>
+            <p className="text-xl leading-tight font-bold text-slate-800">{POSITIVE_NOTE_LEAD}</p>
+            <p className="mt-1 text-sm leading-relaxed font-medium text-slate-600">{POSITIVE_NOTE_BODY}</p>
+          </div>
+
           {/* Edit Message Section */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
@@ -128,21 +137,19 @@ export default function Step5Completion({ form, updateForm, isGuest, onBack, onL
             <textarea
               value={currentMessage}
               onChange={(e) => updateForm({ messageText: e.target.value })}
-              className="w-full px-4 py-3 rounded-2xl bg-white/60 backdrop-blur border border-white/60 focus:border-calm-400 focus:ring-2 focus:ring-calm-200/50 outline-none transition-all min-h-[200px] text-sm text-slate-700 resize-none"
+              className="w-full px-4 py-3 rounded-2xl bg-white/95 border border-calm-300/80 shadow-lg shadow-calm-100/50 ring-1 ring-calm-200/60 focus:border-calm-500 focus:ring-2 focus:ring-calm-300/70 outline-none transition-all min-h-[200px] text-sm text-slate-700 resize-none"
               placeholder="Edit your message here..."
             />
           </div>
+          <div className="text-left px-1">
+            <div className="flex items-center gap-2 text-calm-700/80">
+              <Lightbulb className="w-3.5 h-3.5" />
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em]">Tip</p>
+            </div>
+            <p className="mt-1 text-xs leading-relaxed text-slate-600">{guidance.tip}</p>
+          </div>
 
           {/* Action Buttons */}
-          <motion.button
-            type="button"
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
-            onClick={onBack}
-            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white/70 text-slate-700 font-medium hover:bg-white hover:shadow-md transition-all border border-slate-200"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </motion.button>
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -200,27 +207,17 @@ export default function Step5Completion({ form, updateForm, isGuest, onBack, onL
               Pay for kit
             </motion.button>
           )}
-          <div className="relative overflow-hidden rounded-3xl border border-calm-200/70 bg-gradient-to-br from-white/90 via-calm-50/80 to-white/80 p-5 text-left shadow-soft">
-            <div className="pointer-events-none absolute -top-16 -right-10 h-40 w-40 rounded-full bg-calm-200/40 blur-2xl" />
-            <div className="relative space-y-4">
-              <div className="rounded-2xl border border-white/80 bg-white/75 p-4 backdrop-blur">
-                <div className="mb-2 flex items-center gap-2 text-calm-700">
-                  <Lightbulb className="w-4 h-4" />
-                  <p className="text-xs font-semibold uppercase tracking-[0.08em]">Tip</p>
-                </div>
-                <p className="text-sm leading-relaxed text-slate-700">{guidance.tip}</p>
-              </div>
-              <div className="rounded-2xl border border-calm-200/70 bg-gradient-to-br from-calm-50/80 to-white/95 p-4">
-                <div className="mb-2 flex items-center gap-2 text-calm-700">
-                  <Sparkles className="w-4 h-4" />
-                  <p className="text-xs font-semibold uppercase tracking-[0.08em]">Positive Note:</p>
-                </div>
-                <p className="text-xl leading-tight font-bold text-slate-800">{POSITIVE_NOTE_LEAD}</p>
-                <p className="mt-1 text-sm leading-relaxed font-medium text-slate-600">{POSITIVE_NOTE_BODY}</p>
-              </div>
-            </div>
-          </div>
         </div>
+
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
+          onClick={onBack}
+          className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white/70 text-slate-700 font-medium hover:bg-white hover:shadow-md transition-all border border-slate-200"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </motion.button>
 
         {isGuest && (
           <motion.div
