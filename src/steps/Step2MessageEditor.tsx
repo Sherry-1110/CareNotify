@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Check, FlaskConical, MessageCircle, Phone, Upload, User, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, ExternalLink, FlaskConical, MessageCircle, Phone, Upload, User, X } from 'lucide-react'
 import type { ChangeEvent } from 'react'
 import type { FormState } from '../App'
 
@@ -331,6 +331,15 @@ export default function Step2MessageEditor({
 
               <div>
                 <h3 className="section-title">What is your partner's attachment style?</h3>
+                <a
+                  href="https://example.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-calm-600 hover:text-calm-700 underline flex items-center gap-1 mt-1 mb-3"
+                >
+                  Learn more
+                  <ExternalLink className="w-3 h-3" />
+                </a>
                 <div className="space-y-3">
                   {ATTACHMENT_STYLE_OPTIONS.map((option) => {
                     const selected = form.attachmentStyle === option.value
