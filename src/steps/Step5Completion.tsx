@@ -1,18 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Copy, Lightbulb, MessageCircle, MessageSquare, Phone, Shield, Sparkles } from 'lucide-react'
+import { ArrowLeft, Copy, Lightbulb, LoaderCircle, MessageCircle, Phone, Share2, Shield, Sparkles } from 'lucide-react'
 import type { FormState } from '../App'
-
-const TEST_LABELS: Record<string, string> = {
-  chlamydia: 'Chlamydia',
-  gonorrhea: 'Gonorrhea',
-  syphilis: 'Syphilis',
-  trichomoniasis: 'Trichomoniasis',
-  hiv: 'HIV',
-  hsv_1: 'HSV-1 (Herpes Simplex Virus Type 1)',
-  hsv_2: 'HSV-2 (Herpes Simplex Virus Type 2)',
-  mycoplasma_genitalium: 'Mycoplasma Genitalium',
-}
+import { generateMessageFromForm, getDefaultMessage } from '../lib/messageGenerator'
 
 type AttachmentKey = FormState['attachmentStyle']
 type AttachmentGuidance = {
@@ -41,25 +31,6 @@ const FALLBACK_GUIDANCE: AttachmentGuidance = {
 const POSITIVE_NOTE_LEAD = "You're taking a positive step."
 const POSITIVE_NOTE_BODY = 'Being open about sexual health builds trust and keeps everyone safe.'
 
-function getDefaultMessage(form: FormState): string {
-  const name = form.partnerName || '*insert partner name*'
-  const diseases = form.testResults
-    .map((result) => TEST_LABELS[result] ?? result)
-    .join(', ')
-  
-  if (form.sponsorKit) {
-    if (form.testResults.length === 0) {
-      return `Hey ${name}, I tested positive for an STI. I wanted to let you know so you can get tested too. I'm not accusing you of anything — sometimes it can show up later without symptoms. I care about us and just want us both to be healthy. I actually ordered an at-home test kit for you just to make things easier and totally up to you if you want to use it. I just wanted to handle this responsibly.`
-    }
-    return `Hey ${name}, I tested positive for ${diseases}. I wanted to let you know so you can get tested too. I'm not accusing you of anything — sometimes it can show up later without symptoms. I care about us and just want us both to be healthy. I actually ordered an at-home test kit for you just to make things easier and totally up to you if you want to use it. I just wanted to handle this responsibly.`
-  }
-  
-  if (form.testResults.length === 0) {
-    return `Hey ${name}, I tested positive for an STI. I wanted to let you know so you can get tested too. I'm not accusing you of anything — sometimes it can show up later without symptoms. I care about us and just want us both to be healthy.`
-  }
-  return `Hey ${name}, I tested positive for ${diseases}. I wanted to let you know so you can get tested too. I'm not accusing you of anything — sometimes it can show up later without symptoms. I care about us and just want us both to be healthy.`
-}
-
 type Step5CompletionProps = {
   form: FormState
   updateForm: (u: Partial<FormState>) => void
@@ -69,21 +40,36 @@ type Step5CompletionProps = {
   onLogShare: () => void
 }
 
-export default function Step5Completion({ form, updateForm, isGuest, onBack, onLogCopy, onLogShare }: Step5CompletionProps) {
+export default function Step5Completion({ form, isGuest, onBack, onLogCopy, onLogShare }: Step5CompletionProps) {
   const [copied, setCopied] = useState(false)
+  const [generatedMessage, setGeneratedMessage] = useState('')
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [generationError, setGenerationError] = useState('')
+  const communicationLabel = form.communicationPreference === 'call' ? 'Call' : 'Text'
   const guidance = ATTACHMENT_GUIDANCE[form.attachmentStyle as Exclude<AttachmentKey, ''>] ?? FALLBACK_GUIDANCE
-  
-  const templateMessage = useMemo(
-    () => getDefaultMessage(form),
-    [form.partnerName, form.testResults, form.sponsorKit]
-  )
-  
-  const currentMessage = form.messageText || templateMessage
-  
-  const messageToShare = useMemo(
-    () => form.messageText.trim() || getDefaultMessage(form),
-    [form.messageText, form.partnerName, form.testResults, form.sponsorKit]
-  )
+
+  const fallbackMessage = form.messageText.trim() || getDefaultMessage(form)
+  const messageToShare = generatedMessage || fallbackMessage
+
+  const runGeneration = async () => {
+    setIsGenerating(true)
+    setGenerationError('')
+    try {
+      const message = await generateMessageFromForm(form)
+      setGeneratedMessage(message)
+    } catch (error) {
+      setGeneratedMessage('')
+      const details = error instanceof Error ? error.message : 'Unknown error'
+      setGenerationError(`Could not generate a personalized message. Using fallback message instead. ${details}`)
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  useEffect(() => {
+    void runGeneration()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleCopy = async () => {
     try {
@@ -92,7 +78,7 @@ export default function Step5Completion({ form, updateForm, isGuest, onBack, onL
       onLogCopy()
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      // fallback or toast
+      // noop
     }
   }
 
@@ -105,36 +91,48 @@ export default function Step5Completion({ form, updateForm, isGuest, onBack, onL
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="flex flex-col items-center space-y-8 w-full text-center"
+        className="flex flex-col items-center space-y-8 w-full"
       >
+        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-calm-400/90 to-calm-600 flex items-center justify-center border border-white/40 shadow-soft">
+          <Share2 className="w-10 h-10 text-white" />
+        </div>
+
         <div className="w-full text-center">
-          <h2 className="text-2xl font-bold tracking-tight text-calm-900">You're all set!</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-calm-900">You're almost done</h2>
+          <p className="text-sm text-calm-700/90 mt-1 leading-relaxed">
+            You can copy or send your message to your partner using any option below.
+            {' '}Preferred communication: <span className="font-medium">{communicationLabel}</span>.
+            {form.sponsorKit && " If you're sponsoring a kit, you can complete that here when you're ready."}
+          </p>
         </div>
 
         <div className="w-full space-y-4">
-          <div className="text-left px-1">
-            <div className="flex items-center gap-2 text-calm-700/80">
-              <Lightbulb className="w-3.5 h-3.5" />
-              <p className="text-[11px] font-semibold uppercase tracking-[0.08em]">Tip</p>
+          <div className="rounded-2xl bg-white/50 backdrop-blur p-4 border border-white/50 text-left">
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <p className="text-xs font-medium text-slate-500">Personalized message</p>
+              <button
+                type="button"
+                onClick={() => void runGeneration()}
+                disabled={isGenerating}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-calm-700 hover:text-calm-900 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isGenerating ? (
+                  <>
+                    <LoaderCircle className="w-3.5 h-3.5 animate-spin" />
+                    Generating
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Regenerate
+                  </>
+                )}
+              </button>
             </div>
-            <p className="mt-1 text-xs leading-relaxed text-slate-600">{guidance.tip}</p>
+            {generationError && <p className="text-xs text-amber-700 mb-2">{generationError}</p>}
+            <p className="text-sm text-slate-700 whitespace-pre-wrap">{messageToShare}</p>
           </div>
 
-          {/* Edit Message Section */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-calm-600" />
-              <h3 className="font-semibold text-slate-800">Preview & edit your message</h3>
-            </div>
-            <textarea
-              value={currentMessage}
-              onChange={(e) => updateForm({ messageText: e.target.value })}
-              className="w-full px-4 py-3 rounded-2xl bg-white/95 border border-calm-300/80 shadow-lg shadow-calm-100/50 ring-1 ring-calm-200/60 focus:border-calm-500 focus:ring-2 focus:ring-calm-300/70 outline-none transition-all min-h-[200px] text-sm text-slate-700 resize-none"
-              placeholder="Edit your message here..."
-            />
-          </div>
-
-          {/* Action Buttons */}
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -144,6 +142,7 @@ export default function Step5Completion({ form, updateForm, isGuest, onBack, onL
             <Copy className="w-5 h-5" />
             {copied ? 'Copied!' : 'Copy message to clipboard'}
           </motion.button>
+
           {form.communicationPreference === 'call' ? (
             <motion.a
               whileHover={{ scale: 1.02 }}
@@ -182,6 +181,7 @@ export default function Step5Completion({ form, updateForm, isGuest, onBack, onL
               </motion.a>
             </div>
           )}
+
           {form.sponsorKit && (
             <motion.button
               type="button"
@@ -192,25 +192,37 @@ export default function Step5Completion({ form, updateForm, isGuest, onBack, onL
               Pay for kit
             </motion.button>
           )}
-        </div>
 
-        <motion.button
-          type="button"
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
-          onClick={onBack}
-          className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white/70 text-slate-700 font-medium hover:bg-white hover:shadow-md transition-all border border-slate-200"
-        >
-          <ArrowLeft className="w-4 h-4" />
-        </motion.button>
-
-        <div className="w-full rounded-2xl border border-calm-200/70 bg-gradient-to-br from-calm-50/80 to-white/95 p-4 text-left shadow-soft">
-          <div className="mb-2 flex items-center gap-2 text-calm-700">
-            <Sparkles className="w-4 h-4" />
-            <p className="text-xs font-semibold uppercase tracking-[0.08em]">Positive Note</p>
+          <div className="relative overflow-hidden rounded-3xl border border-calm-200/70 bg-gradient-to-br from-white/90 via-calm-50/80 to-white/80 p-5 text-left shadow-soft">
+            <div className="pointer-events-none absolute -top-16 -right-10 h-40 w-40 rounded-full bg-calm-200/40 blur-2xl" />
+            <div className="relative space-y-4">
+              <div className="rounded-2xl border border-white/80 bg-white/75 p-4 backdrop-blur">
+                <div className="mb-2 flex items-center gap-2 text-calm-700">
+                  <Lightbulb className="w-4 h-4" />
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em]">Tip</p>
+                </div>
+                <p className="text-sm leading-relaxed text-slate-700">{guidance.tip}</p>
+              </div>
+              <div className="rounded-2xl border border-calm-200/70 bg-gradient-to-br from-calm-50/80 to-white/95 p-4">
+                <div className="mb-2 flex items-center gap-2 text-calm-700">
+                  <Sparkles className="w-4 h-4" />
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em]">Positive Note</p>
+                </div>
+                <p className="text-xl leading-tight font-bold text-slate-800">{POSITIVE_NOTE_LEAD}</p>
+                <p className="mt-1 text-sm leading-relaxed font-medium text-slate-600">{POSITIVE_NOTE_BODY}</p>
+              </div>
+            </div>
           </div>
-          <p className="text-xl leading-tight font-bold text-slate-800">{POSITIVE_NOTE_LEAD}</p>
-          <p className="mt-1 text-sm leading-relaxed font-medium text-slate-600">{POSITIVE_NOTE_BODY}</p>
+
+          <motion.button
+            type="button"
+            whileTap={{ scale: 0.98 }}
+            onClick={onBack}
+            className="w-full px-5 py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all flex items-center justify-center gap-2"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back
+          </motion.button>
         </div>
 
         {isGuest && (

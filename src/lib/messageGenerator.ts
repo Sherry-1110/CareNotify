@@ -17,10 +17,25 @@ const TEST_LABELS: Record<string, string> = {
   mycoplasma_genitalium: 'Mycoplasma Genitalium',
 }
 
+function getTestLabel(testResults: unknown): string {
+  if (Array.isArray(testResults)) {
+    const labels = testResults
+      .filter((t): t is string => typeof t === 'string' && t.length > 0)
+      .map((t) => TEST_LABELS[t] ?? t)
+    return labels.length > 0 ? labels.join(', ') : 'an STI'
+  }
+
+  if (typeof testResults === 'string' && testResults) {
+    return TEST_LABELS[testResults] ?? testResults
+  }
+
+  return 'an STI'
+}
+
 export function getDefaultMessage(form: FormState): string {
   const name = form.partnerName || '[Name]'
-  const test = TEST_LABELS[form.testResult] ?? 'an STI'
-  return `Hi ${name}, I wanted to let you know I recently tested positive for ${test}. Please get tested when you can. I’m sharing this so we can both take care of our health.`
+  const test = getTestLabel(form.testResults)
+  return `Hi ${name}, I wanted to let you know I recently tested positive for ${test}. Please get tested when you can. I'm sharing this so we can both take care of our health.`
 }
 
 function fileToDataUrl(file: File): Promise<string> {
@@ -58,16 +73,19 @@ function normalize(value: unknown): string {
   return typeof value === 'string' ? value.trim() : ''
 }
 
-async function generateViaFrontendOpenAI(form: FormState, contextFiles: ContextFilePayload[]): Promise<string> {
-  const apiKey = normalize(import.meta.env.OPENAI_API_KEY)
-  if (!apiKey) {
-    throw new Error('Missing OPENAI_API_KEY.')
-  }
+function getOpenAIKey(): string {
+  return normalize(import.meta.env.VITE_OPENAI_API_KEY) || normalize(import.meta.env.OPENAI_API_KEY)
+}
 
+async function generateViaFrontendOpenAI(
+  form: FormState,
+  contextFiles: ContextFilePayload[],
+  apiKey: string
+): Promise<string> {
   const partnerName = normalize(form.partnerName) || 'there'
   const relationship = normalize(form.partnerRelationship) || 'partner'
   const communication = normalize(form.communicationPreference) || 'message'
-  const diagnosis = TEST_LABELS[form.testResult] ?? 'an STI'
+  const diagnosis = getTestLabel(form.testResults)
   const attachmentStyle = normalize(form.attachmentStyle) || 'unspecified'
 
   const userContent: Array<{ type: 'input_text' | 'input_image'; text?: string; image_url?: string }> = [
@@ -103,14 +121,14 @@ async function generateViaFrontendOpenAI(form: FormState, contextFiles: ContextF
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: normalize(import.meta.env.OPENAI_MODEL) || 'gpt-4.1-mini',
+      model: normalize(import.meta.env.VITE_OPENAI_MODEL) || normalize(import.meta.env.OPENAI_MODEL) || 'gpt-4.1-mini',
       input: [
         {
           role: 'system',
           content: [
             {
               type: 'input_text',
-              text: 'You are an empathetic health communication assistant for a patient who has recently tested positive for the specific STI below. Generate a message that is concise, respectful, and informative for them to send to the specific partner.Output only the final message text.',
+              text: 'You are an empathetic health communication assistant for a patient who has recently tested positive for the specific STI below. Generate a message that is concise, respectful, and informative for them to send to the specific partner. Output only the final message text.',
             },
           ],
         },
@@ -136,19 +154,21 @@ async function generateViaFrontendOpenAI(form: FormState, contextFiles: ContextF
       ?.flatMap((item) => item.content ?? [])
       .find((contentItem) => contentItem.type === 'output_text' && normalize(contentItem.text))?.text
   )
+
   const message = responseText || structuredText
   if (!message) {
     throw new Error('Empty OpenAI response.')
   }
+
   return message
 }
 
 export async function generateMessageFromForm(form: FormState): Promise<string> {
   const contextFiles = await buildContextFiles(form.lastInteractionFiles)
+  const frontendApiKey = getOpenAIKey()
 
-  const frontendApiKey = normalize(import.meta.env.OPENAI_API_KEY)
   if (frontendApiKey) {
-    return generateViaFrontendOpenAI(form, contextFiles)
+    return generateViaFrontendOpenAI(form, contextFiles, frontendApiKey)
   }
 
   const response = await fetch('/api/generate-message', {
@@ -158,7 +178,7 @@ export async function generateMessageFromForm(form: FormState): Promise<string> 
       partnerName: form.partnerName,
       partnerRelationship: form.partnerRelationship,
       communicationPreference: form.communicationPreference,
-      testResult: form.testResult,
+      testResult: form.testResults[0] ?? '',
       attachmentStyle: form.attachmentStyle,
       contextFiles,
     }),
