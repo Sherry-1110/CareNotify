@@ -56,7 +56,7 @@ export default function Step2MessageEditor({
     : popupStep === 2
       ? form.testResults.length > 0
       : popupStep === 3
-        ? form.lastInteractionFiles.length > 0
+        ? true // File upload is optional
         : true // Pages 4 and 5 are optional, always can continue
 
   const handleNext = () => {
