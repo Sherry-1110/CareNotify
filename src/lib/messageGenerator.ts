@@ -198,12 +198,14 @@ export type MessageWithStyle = {
 export async function generateMessageAndStyleFromForm(form: FormState): Promise<MessageWithStyle> {
   const contextFiles = await buildContextFiles(form.lastInteractionFiles)
   const frontendApiKey = getOpenAIKey()
+  const selectedAttachmentStyle = normalize(form.attachmentStyle)
 
   if (frontendApiKey) {
-    // First determine attachment style from context
-    const attachmentStyle = await determineAttachmentStyleViaFrontendOpenAI(form, contextFiles, frontendApiKey)
-    
-    // Then generate message with that style
+    // Respect explicit user selection from Step 3; only infer as fallback.
+    const attachmentStyle =
+      selectedAttachmentStyle ||
+      (await determineAttachmentStyleViaFrontendOpenAI(form, contextFiles, frontendApiKey))
+
     const formWithStyle: FormState = { ...form, attachmentStyle: attachmentStyle as FormState['attachmentStyle'] }
     const message = await generateViaFrontendOpenAI(formWithStyle, contextFiles, frontendApiKey)
     
