@@ -301,15 +301,9 @@ export default function Step2MessageEditor({
 
                 <div className="mt-6">
                   <h3 className="section-title">What is your partner's attachment style?</h3>
-                  <div className="text-xs text-calm-600 mt-1 mb-3 space-y-1">
-                    <p className="font-medium mb-2">Attachment styles describe how people typically behave in relationships:</p>
-                    <ul className="list-disc list-inside space-y-1 ml-1">
-                      <li><strong>Secure:</strong> Comfortable with intimacy and independence.</li>
-                      <li><strong>Anxious:</strong> Craving closeness and fearing abandonment.</li>
-                      <li><strong>Avoidant:</strong> Valuing independence and emotionally distant.</li>
-                      <li><strong>Disorganized:</strong> Conflicted and fearful behavior patterns.</li>
-                    </ul>
-                  </div>
+                  <p className="text-xs text-calm-600 mt-1 mb-3">
+                    Attachment style reflects how someone emotionally connects and communicates in relationships.
+                  </p>
                   <div className="space-y-3">
                     {ATTACHMENT_STYLE_OPTIONS.map((option) => {
                       const selected = form.attachmentStyle === option.value
