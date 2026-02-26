@@ -80,6 +80,28 @@ function App() {
     logProgress(userId, 'step_1_signin')
   }
 
+  const handleBackToSponsorKit = () => {
+    setStep2InitialPage(5)
+    goToStep(2)
+  }
+
+  const handleNewMessage = () => {
+    setStep2InitialPage(1)
+    setForm((prev) => ({
+      ...prev,
+      step: 2,
+      partnerName: '',
+      partnerRelationship: '',
+      communicationPreference: 'text',
+      testResults: [],
+      attachmentStyle: '',
+      lastInteractionFiles: [],
+      additionalMessage: '',
+      messageText: '',
+      sponsorKit: false,
+    }))
+  }
+
   return (
     <div className="min-h-screen app-bg">
       <AnimatePresence mode="sync">
@@ -133,6 +155,8 @@ function App() {
               isGuest={form.isGuest}
               onLogCopy={() => logProgress(form.userId, 'step_5_copy')}
               onLogShare={() => logProgress(form.userId, 'step_5_share')}
+              onBackToSponsorKit={handleBackToSponsorKit}
+              onNewMessage={handleNewMessage}
             />
           </motion.div>
         )}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Copy, Lightbulb, LoaderCircle, MessageCircle, Phone, Shield, Sparkles } from 'lucide-react'
+import { ArrowLeft, Copy, Lightbulb, LoaderCircle, MessageCircle, Phone, Shield, Sparkles } from 'lucide-react'
 import type { FormState } from '../App'
 import { generateMessageAndStyleFromForm, generateGuidanceFromForm, getDefaultMessage, type AttachmentGuidance } from '../lib/messageGenerator'
 
@@ -16,9 +16,19 @@ type Step5CompletionProps = {
   isGuest: boolean
   onLogCopy: () => void
   onLogShare: () => void
+  onBackToSponsorKit: () => void
+  onNewMessage: () => void
 }
 
-export default function Step5Completion({ form, updateForm, isGuest, onLogCopy, onLogShare }: Step5CompletionProps) {
+export default function Step5Completion({
+  form,
+  updateForm,
+  isGuest,
+  onLogCopy,
+  onLogShare,
+  onBackToSponsorKit,
+  onNewMessage,
+}: Step5CompletionProps) {
   const [copied, setCopied] = useState(false)
   const [generatedMessage, setGeneratedMessage] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
@@ -203,6 +213,26 @@ export default function Step5Completion({ form, updateForm, isGuest, onLogCopy, 
             ) : (
               <p className="text-sm leading-relaxed font-medium text-slate-600">{guidance.positiveNote}</p>
             )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.98 }}
+              onClick={onBackToSponsorKit}
+              className="w-full flex items-center justify-center py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all"
+            >
+              <ArrowLeft className="w-5 h-5 shrink-0" />
+            </motion.button>
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              onClick={onNewMessage}
+              className="w-full py-4 px-4 rounded-2xl bg-gradient-primary text-white font-medium shadow-soft border border-white/20 hover:shadow-lg transition-shadow"
+            >
+              New Message
+            </motion.button>
           </div>
         </div>
 
