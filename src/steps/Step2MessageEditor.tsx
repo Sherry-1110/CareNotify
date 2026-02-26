@@ -37,22 +37,22 @@ const ATTACHMENT_STYLE_OPTIONS = [
   {
     value: 'secure',
     label: 'Secure',
-    description: 'Comfortable with intimacy and independence.',
+    description: 'Comfortable with intimacy/independence.',
   },
   {
     value: 'anxious',
     label: 'Anxious',
-    description: 'Craving closeness and fearing abandonment.',
+    description: 'Craving closeness, fearing abandonment.',
   },
   {
     value: 'avoidant',
     label: 'Avoidant',
-    description: 'Valuing independence and emotionally distant.',
+    description: 'Valuing independence, emotionally distant.',
   },
   {
     value: 'disorganized',
     label: 'Disorganized',
-    description: 'Conflicted and fearful behavior patterns.',
+    description: 'Conflicted, fearful behavior.',
   },
 ] as const
 
@@ -301,15 +301,15 @@ export default function Step2MessageEditor({
 
                 <div className="mt-6">
                   <h3 className="section-title">What is your partner's attachment style?</h3>
-                  <a
-                    href="https://www.attachmentproject.com/blog/four-attachment-styles/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-calm-600 hover:text-calm-700 underline flex items-center gap-1 mt-1 mb-3"
-                  >
-                    Learn more
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
+                  <div className="text-xs text-calm-600 mt-1 mb-3 space-y-1">
+                    <p className="font-medium mb-2">Attachment styles describe how people typically behave in relationships:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-1">
+                      <li><strong>Secure:</strong> Comfortable with intimacy and independence.</li>
+                      <li><strong>Anxious:</strong> Craving closeness and fearing abandonment.</li>
+                      <li><strong>Avoidant:</strong> Valuing independence and emotionally distant.</li>
+                      <li><strong>Disorganized:</strong> Conflicted and fearful behavior patterns.</li>
+                    </ul>
+                  </div>
                   <div className="space-y-3">
                     {ATTACHMENT_STYLE_OPTIONS.map((option) => {
                       const selected = form.attachmentStyle === option.value
