@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, Check, ExternalLink, FlaskConical, Gift, Upload, Users, X } from 'lucide-react'
-import type { ChangeEvent } from 'react'
+import type { ChangeEvent, DragEvent } from 'react'
 import type { FormState } from '../App'
 
 const RELATIONSHIP_OPTIONS = [
@@ -73,6 +73,7 @@ export default function Step2MessageEditor({
 }: Step2MessageEditorProps) {
   const [popupStep, setPopupStep] = useState<1 | 2 | 3 | 4 | 5>(initialPage)
   const [hasInteractedWithStiSelection, setHasInteractedWithStiSelection] = useState(false)
+  const [isDraggingFiles, setIsDraggingFiles] = useState(false)
 
   const canContinue = popupStep === 1
     ? Boolean(form.partnerName.trim() && form.partnerRelationship)
@@ -91,13 +92,26 @@ export default function Step2MessageEditor({
     onNext()
   }
 
-  const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
-    const incomingFiles = Array.from(event.target.files ?? [])
+  const processIncomingFiles = (incomingFiles: File[]) => {
     if (!incomingFiles.length) return
+    if (form.lastInteractionFiles.length >= 2) return
 
     const merged = [...form.lastInteractionFiles, ...incomingFiles].slice(0, 2)
     updateForm({ lastInteractionFiles: merged })
+  }
+
+  const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
+    const incomingFiles = Array.from(event.target.files ?? [])
+    processIncomingFiles(incomingFiles)
     event.target.value = ''
+  }
+
+  const handleDropFiles = (event: DragEvent<HTMLLabelElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+    setIsDraggingFiles(false)
+    const files = Array.from(event.dataTransfer?.files ?? []).filter((file) => file.type.startsWith('image/'))
+    processIncomingFiles(files)
   }
 
   const removeFile = (indexToRemove: number) => {
@@ -265,7 +279,27 @@ export default function Step2MessageEditor({
                   Can you help provide some context of your last interaction with them?
                 </p>
                 <p className="text-sm text-slate-600 mb-3">Upload screenshots or photos (optional, max 2 files).</p>
-                <label className="w-full rounded-2xl border border-dashed border-calm-300/80 bg-white/40 hover:bg-white/60 transition-colors p-4 flex flex-col items-center justify-center gap-2 text-center cursor-pointer">
+                <label
+                  className={`w-full rounded-2xl border border-dashed ${
+                    isDraggingFiles ? 'border-calm-500 bg-calm-50/80' : 'border-calm-300/80 bg-white/40 hover:bg-white/60'
+                  } transition-colors p-4 flex flex-col items-center justify-center gap-2 text-center cursor-pointer`}
+                  onDragOver={(event) => {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    if (!isDraggingFiles) setIsDraggingFiles(true)
+                  }}
+                  onDragEnter={(event) => {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    setIsDraggingFiles(true)
+                  }}
+                  onDragLeave={(event) => {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    setIsDraggingFiles(false)
+                  }}
+                  onDrop={handleDropFiles}
+                >
                   <Upload className="w-5 h-5 text-calm-600" />
                   <span className="text-sm font-medium text-slate-700">Upload context files</span>
                   <span className="text-xs text-slate-500">Up to 2 images</span>
