@@ -1,21 +1,24 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Copy, LoaderCircle, MessageCircle, Phone, Share2, Shield, Sparkles } from 'lucide-react'
+import { Copy, Edit2, LoaderCircle, MessageCircle, Phone, Share2, Shield, Sparkles, Check, X } from 'lucide-react'
 import type { FormState } from '../App'
 import { generateMessageFromForm, getDefaultMessage } from '../lib/messageGenerator'
 
 type Step4CompletionProps = {
   form: FormState
   isGuest: boolean
+  updateForm: (u: Partial<FormState>) => void
   onLogCopy: () => void
   onLogShare: () => void
 }
 
-export default function Step4Completion({ form, isGuest, onLogCopy, onLogShare }: Step4CompletionProps) {
+export default function Step4Completion({ form, isGuest, updateForm, onLogCopy, onLogShare }: Step4CompletionProps) {
   const [copied, setCopied] = useState(false)
   const [generatedMessage, setGeneratedMessage] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [generationError, setGenerationError] = useState('')
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedMessage, setEditedMessage] = useState('')
   const communicationLabel = form.communicationPreference === 'call' ? 'Call' : 'Text'
   const fallbackMessage = form.messageText.trim() || getDefaultMessage(form)
   const messageToShare = generatedMessage || fallbackMessage
@@ -52,6 +55,24 @@ export default function Step4Completion({ form, isGuest, onLogCopy, onLogShare }
     }
   }
 
+  const handleEdit = () => {
+    setEditedMessage(messageToShare)
+    setIsEditing(true)
+  }
+
+  const handleSaveEdit = () => {
+    if (editedMessage.trim()) {
+      updateForm({ messageText: editedMessage })
+      setGeneratedMessage(editedMessage)
+      setIsEditing(false)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+    setEditedMessage('')
+  }
+
   const shareUrl = `https://wa.me/?text=${encodeURIComponent(messageToShare)}`
   const smsUrl = `sms:?body=${encodeURIComponent(messageToShare)}`
 
@@ -79,29 +100,72 @@ export default function Step4Completion({ form, isGuest, onLogCopy, onLogShare }
           <div className="rounded-2xl bg-white/50 backdrop-blur p-4 border border-white/50 text-left">
             <div className="flex items-center justify-between gap-3 mb-2">
               <p className="text-xs font-medium text-slate-500">Personalized message</p>
-              <button
-                type="button"
-                onClick={() => void runGeneration()}
-                disabled={isGenerating}
-                className="inline-flex items-center gap-1.5 text-xs font-medium text-calm-700 hover:text-calm-900 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isGenerating ? (
-                  <>
-                    <LoaderCircle className="w-3.5 h-3.5 animate-spin" />
-                    Generating
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-3.5 h-3.5" />
-                    Regenerate
-                  </>
+              <div className="flex items-center gap-2">
+                {!isEditing && (
+                  <button
+                    type="button"
+                    onClick={handleEdit}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-calm-700 hover:text-calm-900"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                    Edit
+                  </button>
                 )}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => void runGeneration()}
+                  disabled={isGenerating}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-calm-700 hover:text-calm-900 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isGenerating ? (
+                    <>
+                      <LoaderCircle className="w-3.5 h-3.5 animate-spin" />
+                      Generating
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Regenerate
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
             {generationError && (
               <p className="text-xs text-amber-700 mb-2">{generationError}</p>
             )}
-            <p className="text-sm text-slate-700 whitespace-pre-wrap">{messageToShare}</p>
+            {isEditing ? (
+              <div className="space-y-2">
+                <textarea
+                  value={editedMessage}
+                  onChange={(e) => setEditedMessage(e.target.value)}
+                  className="w-full text-sm text-slate-700 border border-calm-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-calm-400 min-h-[120px] resize-none"
+                  placeholder="Edit your message..."
+                />
+                <div className="flex gap-2">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleSaveEdit}
+                    className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-calm-500 text-white text-sm font-medium hover:bg-calm-600 transition-colors"
+                  >
+                    <Check className="w-4 h-4" />
+                    Save
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleCancelEdit}
+                    className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-300 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                    Cancel
+                  </motion.button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-slate-700 whitespace-pre-wrap">{messageToShare}</p>
+            )}
           </div>
           <motion.button
             whileHover={{ scale: 1.02 }}
