@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Check, ExternalLink, FlaskConical, Gift, Upload, Users, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, ExternalLink, FlaskConical, Gift, MessageSquare, Phone, Upload, Users, X } from 'lucide-react'
 import type { ChangeEvent, DragEvent } from 'react'
 import type { FormState } from '../App'
 
@@ -76,7 +76,7 @@ export default function Step2MessageEditor({
   const [isDraggingFiles, setIsDraggingFiles] = useState(false)
 
   const canContinue = popupStep === 1
-    ? Boolean(form.partnerName.trim() && form.partnerRelationship)
+    ? Boolean(form.partnerName.trim() && form.partnerRelationship && form.communicationPreference)
     : popupStep === 2
       ? form.testResults.length > 0
       : popupStep === 3
@@ -204,6 +204,36 @@ export default function Step2MessageEditor({
                       </button>
                     )
                   })}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="section-title">How would you like to reach them?</h3>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => updateForm({ communicationPreference: 'text' })}
+                    className={`flex-1 flex items-center justify-center gap-2 rounded-2xl border p-4 transition-all ${
+                      form.communicationPreference === 'text'
+                        ? 'border-calm-400 bg-calm-50/90 shadow-soft'
+                        : 'border-white/60 bg-white/50 hover:bg-white/70'
+                    }`}
+                  >
+                    <MessageSquare className="w-5 h-5 text-calm-600 shrink-0" />
+                    <span className="font-medium text-slate-800">Text</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateForm({ communicationPreference: 'call' })}
+                    className={`flex-1 flex items-center justify-center gap-2 rounded-2xl border p-4 transition-all ${
+                      form.communicationPreference === 'call'
+                        ? 'border-calm-400 bg-calm-50/90 shadow-soft'
+                        : 'border-white/60 bg-white/50 hover:bg-white/70'
+                    }`}
+                  >
+                    <Phone className="w-5 h-5 text-calm-600 shrink-0" />
+                    <span className="font-medium text-slate-800">Call</span>
+                  </button>
                 </div>
               </div>
 
