@@ -8,7 +8,7 @@ const FALLBACK_GUIDANCE: AttachmentGuidance = {
   attachmentStyle: 'secure',
   tip: "Keep the message clear, non-blaming, and focused on shared health.",
   positiveNote: "You're taking a positive step. Being open about sexual health builds trust.",
-}
+} 
 
 type Step5CompletionProps = {
   form: FormState
