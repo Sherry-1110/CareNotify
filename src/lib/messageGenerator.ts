@@ -247,6 +247,19 @@ export type AttachmentGuidance = {
   tip: string
   positiveNote: string
 }
+
+export type ReactionScenario = {
+  title: string
+  type: 'likely' | 'challenging' | 'best'
+  theirResponse: string
+  whyThisReaction: string
+  yourBestReply: string
+}
+
+export type CoachingInsight = {
+  scenarios: ReactionScenario[]
+  attachmentStyle: string
+}
 // First determine attachment style from context
 async function determineAttachmentStyleViaFrontendOpenAI(
   form: FormState,
@@ -447,8 +460,20 @@ Output only the JSON.`,
     throw new Error('Empty OpenAI guidance response.')
   }
 
+  // Strip markdown code block formatting if present
+  let cleanedResponse = rawResponse.trim()
+  if (cleanedResponse.startsWith('```json')) {
+    cleanedResponse = cleanedResponse.slice(7)
+  } else if (cleanedResponse.startsWith('```')) {
+    cleanedResponse = cleanedResponse.slice(3)
+  }
+  if (cleanedResponse.endsWith('```')) {
+    cleanedResponse = cleanedResponse.slice(0, -3)
+  }
+  cleanedResponse = cleanedResponse.trim()
+
   try {
-    const parsed = JSON.parse(rawResponse) as AttachmentGuidance
+    const parsed = JSON.parse(cleanedResponse) as AttachmentGuidance
     return {
       attachmentStyle: normalize(parsed.attachmentStyle) || 'secure',
       tip: normalize(parsed.tip) || "Keep the message clear, non-blaming, and focused on shared health.",
@@ -495,5 +520,211 @@ export async function generateGuidanceFromForm(form: FormState, draftedMessage: 
     attachmentStyle: normalize(data.attachmentStyle) || 'secure',
     tip: normalize(data.tip) || "Keep the message clear, non-blaming, and focused on shared health.",
     positiveNote: normalize(data.positiveNote) || "You're taking a positive step. Being open about sexual health builds trust.",
+  }
+}
+
+async function generateCoachingInsightViaFrontendOpenAI(
+  form: FormState,
+  contextFiles: ContextFilePayload[],
+  apiKey: string
+): Promise<CoachingInsight> {
+  const partnerName = normalize(form.partnerName) || 'there'
+  const relationship = normalize(form.partnerRelationship) || 'partner'
+  const diagnosis = getTestLabel(form.testResults)
+  const attachmentStyle = normalize(form.attachmentStyle) || 'secure'
+  const additionalMessage = normalize(form.additionalMessage)
+
+  console.log('Generating coaching insight with:', {
+    partnerName,
+    relationship,
+    diagnosis,
+    attachmentStyle,
+  })
+
+  const promptParts = [
+    `Recipient Name: ${partnerName}`,
+    `Relationship: ${relationship}`,
+    `STI: ${diagnosis}`,
+    `Partner Attachment Style: ${attachmentStyle}`,
+  ]
+
+  if (additionalMessage) {
+    promptParts.push(`User Context: ${additionalMessage}`)
+  }
+
+  const coachingPrompt = `You are the CareNotify Reaction Predictor, specializing in attachment theory and communication psychology. Your task is to generate three realistic reaction scenarios (Most Likely, Challenging, and Best Case) for a phone call disclosure about an STI diagnosis.
+
+Input:
+${promptParts.join('\n')}
+
+Using attachment theory and relationship dynamics, generate exactly three scenarios:
+
+1. Most Likely Reaction (📊)
+2. Challenging Reaction (😰)  
+3. Best Case Reaction (💚)
+
+For each scenario provide:
+- A realistic message they might send AFTER the call
+- One-sentence psychological reasoning
+- A copy-paste ready response (under 50 words)
+
+Format your response as JSON with this structure:
+{
+  "scenarios": [
+    {
+      "type": "likely",
+      "title": "Most Likely Reaction",
+      "theirResponse": "...",
+      "whyThisReaction": "...",
+      "yourBestReply": "..."
+    },
+    {
+      "type": "challenging",
+      "title": "Challenging Reaction",
+      "theirResponse": "...",
+      "whyThisReaction": "...",
+      "yourBestReply": "..."
+    },
+    {
+      "type": "best",
+      "title": "Best Case Reaction",
+      "theirResponse": "...",
+      "whyThisReaction": "...",
+      "yourBestReply": "..."
+    }
+  ]
+}
+
+Output only valid JSON.`
+
+  const userContent: Array<{ type: 'input_text' | 'input_image'; text?: string; image_url?: string }> = [
+    {
+      type: 'input_text',
+      text: coachingPrompt,
+    },
+  ]
+
+  contextFiles.forEach((file, index) => {
+    userContent.push({
+      type: 'input_text',
+      text: `Context image ${index + 1}: ${file.name}`,
+    })
+    userContent.push({
+      type: 'input_image',
+      image_url: file.dataUrl,
+    })
+  })
+
+  const response = await fetch('https://api.openai.com/v1/responses', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: normalize(import.meta.env.VITE_OPENAI_MODEL) || normalize(import.meta.env.OPENAI_MODEL) || 'gpt-4.1-mini',
+      input: [
+        {
+          role: 'system',
+          content: [
+            {
+              type: 'input_text',
+              text: `You are the CareNotify Reaction Predictor, an AI specializing in attachment theory, communication psychology, and relationship dynamics. Your expertise lies in predicting how different personality types respond to sensitive health disclosures and preparing users for various conversation outcomes. You combine behavioral science with practical communication strategies to help users navigate potentially difficult reactions with confidence and grace.`,
+            },
+          ],
+        },
+        {
+          role: 'user',
+          content: userContent,
+        },
+      ],
+      temperature: 0.7,
+      max_output_tokens: 1200,
+    }),
+  })
+
+  if (!response.ok) {
+    const details = await response.text()
+    console.error('OpenAI coaching insight API error:', response.status, details)
+    throw new Error(`OpenAI coaching insight request failed (${response.status}): ${details || 'no details'}`)
+  }
+
+  const data = (await response.json()) as OpenAiResponse
+  console.log('OpenAI response data:', data)
+  const responseText = normalize(data.output_text)
+  const structuredText = normalize(
+    data.output
+      ?.flatMap((item) => item.content ?? [])
+      .find((contentItem) => contentItem.type === 'output_text' && normalize(contentItem.text))?.text
+  )
+
+  const rawResponse = responseText || structuredText
+  console.log('Raw coaching insight response:', rawResponse)
+  if (!rawResponse) {
+    throw new Error('Empty OpenAI coaching insight response.')
+  }
+
+  // Strip markdown code block formatting if present
+  let cleanedResponse = rawResponse.trim()
+  if (cleanedResponse.startsWith('```json')) {
+    cleanedResponse = cleanedResponse.slice(7) // Remove ```json
+  } else if (cleanedResponse.startsWith('```')) {
+    cleanedResponse = cleanedResponse.slice(3) // Remove ```
+  }
+  if (cleanedResponse.endsWith('```')) {
+    cleanedResponse = cleanedResponse.slice(0, -3) // Remove trailing ```
+  }
+  cleanedResponse = cleanedResponse.trim()
+
+  try {
+    const parsed = JSON.parse(cleanedResponse) as CoachingInsight
+    console.log('Parsed coaching insight:', parsed)
+    return {
+      scenarios: parsed.scenarios || [],
+      attachmentStyle: attachmentStyle,
+    }
+  } catch (parseError) {
+    console.error('Failed to parse coaching insight JSON:', parseError, 'Raw response:', rawResponse)
+    throw new Error('Failed to parse coaching insight response')
+  }
+}
+
+export async function generateCoachingInsightFromForm(form: FormState): Promise<CoachingInsight> {
+  const contextFiles = await buildContextFiles(form.lastInteractionFiles)
+  const frontendApiKey = getOpenAIKey()
+  const selectedAttachmentStyle = normalize(form.attachmentStyle)
+
+  if (frontendApiKey) {
+    // Determine attachment style if not already set
+    const attachmentStyle =
+      selectedAttachmentStyle ||
+      (await determineAttachmentStyleViaFrontendOpenAI(form, contextFiles, frontendApiKey))
+
+    const formWithStyle: FormState = { ...form, attachmentStyle: attachmentStyle as FormState['attachmentStyle'] }
+    return generateCoachingInsightViaFrontendOpenAI(formWithStyle, contextFiles, frontendApiKey)
+  }
+
+  const response = await fetch('/api/generate-coaching-insight', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      partnerName: form.partnerName,
+      partnerRelationship: form.partnerRelationship,
+      additionalMessage: form.additionalMessage,
+      attachmentStyle: form.attachmentStyle,
+      testResults: form.testResults,
+      contextFiles,
+    }),
+  })
+
+  if (!response.ok) {
+    const details = await response.text()
+    throw new Error(`Failed to generate coaching insight (${response.status}): ${details || 'no details'}`)
+  }
+
+  const data = (await response.json()) as CoachingInsight
+  return {
+    scenarios: data.scenarios || [],
+    attachmentStyle: normalize(data.attachmentStyle) || form.attachmentStyle || 'secure',
   }
 }

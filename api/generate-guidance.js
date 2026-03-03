@@ -120,12 +120,24 @@ export default async function handler(req, res) {
         ?.flatMap((item) => item.content ?? [])
         .find((c) => c.type === 'output_text' && normalize(c?.text))?.text) || ''
 
+    // Strip markdown code block formatting if present
+    let cleanedText = rawText.trim()
+    if (cleanedText.startsWith('```json')) {
+      cleanedText = cleanedText.slice(7)
+    } else if (cleanedText.startsWith('```')) {
+      cleanedText = cleanedText.slice(3)
+    }
+    if (cleanedText.endsWith('```')) {
+      cleanedText = cleanedText.slice(0, -3)
+    }
+    cleanedText = cleanedText.trim()
+
     let attachmentStyleOut = style
     let tip = "Keep the message clear, non-blaming, and focused on shared health."
     let positiveNote = "You're taking a positive step. Being open about sexual health builds trust."
 
     try {
-      const parsed = JSON.parse(rawText)
+      const parsed = JSON.parse(cleanedText)
       if (parsed.attachmentStyle) attachmentStyleOut = normalize(parsed.attachmentStyle) || style
       if (parsed.tip) tip = normalize(parsed.tip)
       if (parsed.positiveNote) positiveNote = normalize(parsed.positiveNote)

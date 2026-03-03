@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Check, ExternalLink, FlaskConical, Gift, MessageSquare, Phone, Upload, Users, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, FlaskConical, Gift, MessageSquare, Phone, Upload, Users, X } from 'lucide-react'
 import type { ChangeEvent, DragEvent } from 'react'
 import type { FormState } from '../App'
 
