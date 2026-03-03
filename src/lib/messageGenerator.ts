@@ -1,4 +1,5 @@
 import type { FormState } from '../App'
+import { TIP_PROMPT_V2 } from './tipPromptV2'
 
 type ContextFilePayload = {
   name: string
@@ -364,17 +365,21 @@ async function generateGuidanceViaFrontendOpenAI(
   const additionalMessage = normalize(form.additionalMessage)
 
   const promptParts = [
-    `Recipient Name: ${partnerName}`,
-    `Relationship: ${relationship}`,
-    `STI: ${diagnosis}`,
-    `Partner Attachment Style: ${attachmentStyle}`,
+    `recipient_name: ${partnerName}`,
+    `relationship_type: ${relationship}`,
+    `sti_name: ${diagnosis}`,
+    `attachment_style: ${attachmentStyle}`,
   ]
 
   if (additionalMessage) {
-    promptParts.push(`User Notes: ${additionalMessage}`)
+    promptParts.push(`user_notes: ${additionalMessage}`)
   }
 
-  promptParts.push('', `Drafted Message: "${draftedMessage}"`)
+  promptParts.push(
+    'original_message: "(User did not provide an original draft—treat the improved message as the current draft and validate why it works.)"',
+    '',
+    `improved_message: "${draftedMessage.replace(/"/g, '\\"')}"`
+  )
 
   const userContent: Array<{ type: 'input_text' | 'input_image'; text?: string; image_url?: string }> = [
     {
@@ -408,27 +413,7 @@ async function generateGuidanceViaFrontendOpenAI(
           content: [
             {
               type: 'input_text',
-              text: `You are the "CareNotify Coach." Your goal is to validate the user's situation and explain why the drafted message is effective. You are empowering, educational, and calming.
-
-Core Objective: Generate a short, empowering "Coach's Note" (max 2-3 sentences) that explains the strategy behind the drafted message.
-
-The "Coach's Voice" (Design Language):
-- Validate the Difficulty: Acknowledge that sending this is hard, but they are doing the right thing.
-- Explain the Strategy: Briefly explain why specific words were chosen (e.g., "Using 'we' instead of 'you' reduces defensiveness").
-- Reinforce Safety: Remind them that this approach protects their dignity and the recipient's feelings.
-
-Logic for "Why this works":
-- If Attachment Style is Secure: "This draft uses direct honesty, which honors the trust in your relationship."
-- If Attachment Style is Anxious: "This draft offers clear reassurance to prevent them from spiraling or panicking."
-- If Attachment Style is Avoidant: "This draft keeps it brief and factual, giving them the space they need to process it alone."
-- If Ex-Partner: "This draft maintains a respectful boundary while fulfilling your responsibility."
-
-Also provide a short positive affirmation (1 sentence) that validates their courage in taking this step.
-
-Format your response as JSON:
-{"attachmentStyle": "${attachmentStyle}", "tip": "...", "positiveNote": "..."}
-
-Output only the JSON.`,
+              text: TIP_PROMPT_V2,
             },
           ],
         },
@@ -480,10 +465,11 @@ Output only the JSON.`,
       positiveNote: normalize(parsed.positiveNote) || "You're taking a positive step. Being open about sexual health builds trust.",
     }
   } catch {
-    // Fallback if JSON parsing fails
+    // Tip prompt v2 returns plain text only (coach's note)
+    const tipText = cleanedResponse || "Keep the message clear, non-blaming, and focused on shared health."
     return {
       attachmentStyle: 'secure',
-      tip: "Keep the message clear, non-blaming, and focused on shared health.",
+      tip: tipText,
       positiveNote: "You're taking a positive step. Being open about sexual health builds trust.",
     }
   }
@@ -503,6 +489,7 @@ export async function generateGuidanceFromForm(form: FormState, draftedMessage: 
     body: JSON.stringify({
       partnerName: form.partnerName,
       partnerRelationship: form.partnerRelationship,
+      testResults: form.testResults,
       additionalMessage: form.additionalMessage,
       attachmentStyle: form.attachmentStyle,
       draftedMessage,
