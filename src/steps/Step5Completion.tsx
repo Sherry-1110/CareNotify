@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Copy, Edit2, Lightbulb, LoaderCircle, MessageCircle, Phone, Shield, Sparkles, Check, X } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Copy, Lightbulb, LoaderCircle, MessageCircle, Phone, Shield, Sparkles } from 'lucide-react'
 import type { FormState } from '../App'
 import { generateMessageAndStyleFromForm, generateGuidanceFromForm, generateCoachingInsightFromForm, getDefaultMessage, type AttachmentGuidance, type CoachingInsight } from '../lib/messageGenerator'
 
@@ -30,18 +30,90 @@ export default function Step5Completion({
   onNewMessage,
 }: Step5CompletionProps) {
   const [copied, setCopied] = useState(false)
-  const [generatedMessage, setGeneratedMessage] = useState('')
+  const [generatedMessages, setGeneratedMessages] = useState<string[]>([])
+  const [selectedMessageIndex, setSelectedMessageIndex] = useState(0)
   const [isGenerating, setIsGenerating] = useState(false)
   const [generationError, setGenerationError] = useState('')
   const [guidance, setGuidance] = useState<AttachmentGuidance>(FALLBACK_GUIDANCE)
   const [coachingInsight, setCoachingInsight] = useState<CoachingInsight | null>(null)
   const [isLoadingGuidance, setIsLoadingGuidance] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
-  const [editedMessage, setEditedMessage] = useState('')
   const isCallMode = form.communicationPreference === 'call'
 
   const fallbackMessage = form.messageText.trim() || getDefaultMessage(form)
-  const messageToShare = generatedMessage || fallbackMessage
+  const messageToShare = generatedMessages[selectedMessageIndex] || fallbackMessage
+
+  const buildVariantContext = (baseForm: FormState, styleInstruction: string, slot: number): FormState => {
+    const existingContext = baseForm.additionalMessage.trim()
+    const diversityContext = [
+      existingContext,
+      `Variant goal ${slot}: ${styleInstruction}`,
+      'Use a clearly different wording and sentence structure from other options while preserving facts.',
+    ]
+      .filter(Boolean)
+      .join('\n')
+
+    return {
+      ...baseForm,
+      additionalMessage: diversityContext,
+    }
+  }
+
+  const normalizeForComparison = (message: string) =>
+    message
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .split(/\s+/)
+      .filter((token) => token.length > 2)
+
+  const areMessagesTooSimilar = (a: string, b: string) => {
+    const aTokens = new Set(normalizeForComparison(a))
+    const bTokens = new Set(normalizeForComparison(b))
+    if (aTokens.size === 0 || bTokens.size === 0) return false
+    const overlap = [...aTokens].filter((token) => bTokens.has(token)).length
+    const similarity = overlap / Math.min(aTokens.size, bTokens.size)
+    return similarity >= 0.8
+  }
+
+  const generateThreeMessages = async (): Promise<{ messages: string[]; attachmentStyle: string }> => {
+    const variantInstructions = [
+      'Balanced and neutral: calm, collaborative, and straightforward.',
+      'Concise and direct: fewer words, fact-first, respectful and clear.',
+      'Warm and reassuring: emotionally supportive with gentle tone.',
+    ]
+
+    const seed = await generateMessageAndStyleFromForm(buildVariantContext(form, variantInstructions[0], 1))
+    const attachmentStyle = seed.attachmentStyle
+
+    const baseFormWithStyle: FormState = {
+      ...form,
+      attachmentStyle: attachmentStyle as FormState['attachmentStyle'],
+    }
+
+    const initialMessages = [seed.message.trim()]
+    const remaining = await Promise.all(
+      variantInstructions.slice(1).map(async (instruction, index) => {
+        const result = await generateMessageAndStyleFromForm(
+          buildVariantContext(baseFormWithStyle, instruction, index + 2)
+        )
+        return result.message.trim()
+      })
+    )
+
+    const messages = [...initialMessages, ...remaining]
+
+    for (let i = 0; i < messages.length; i += 1) {
+      for (let j = i + 1; j < messages.length; j += 1) {
+        if (!areMessagesTooSimilar(messages[i], messages[j])) continue
+        const retryInstruction = `${variantInstructions[j]} Make this option significantly different in cadence, opening phrase, and wording.`
+        const retry = await generateMessageAndStyleFromForm(
+          buildVariantContext(baseFormWithStyle, retryInstruction, j + 1)
+        )
+        messages[j] = retry.message.trim()
+      }
+    }
+
+    return { messages, attachmentStyle }
+  }
 
   const runGeneration = async () => {
     setIsGenerating(true)
@@ -55,20 +127,18 @@ export default function Step5Completion({
         // Update form with determined attachment style
         updateForm({ attachmentStyle: insight.attachmentStyle as FormState['attachmentStyle'] })
       } else {
-        // For text mode, generate message and guidance
-        // Generate message and determine attachment style from context
-        const result = await generateMessageAndStyleFromForm(form)
-        setGeneratedMessage(result.message)
+        // For text mode, generate three message options and guidance
+        const result = await generateThreeMessages()
+        setGeneratedMessages(result.messages)
+        setSelectedMessageIndex(0)
         
         // Update form with determined attachment style
         updateForm({ attachmentStyle: result.attachmentStyle as FormState['attachmentStyle'] })
         
-        // Load guidance after message is generated
-        await loadGuidance(result.message, result.attachmentStyle)
       }
     } catch (error) {
       console.error('Generation error:', error)
-      setGeneratedMessage('')
+      setGeneratedMessages([])
       const details = error instanceof Error ? error.message : 'Unknown error'
       setGenerationError(`Could not generate content. ${details}`)
       // Try to load guidance with fallback message for text mode
@@ -100,6 +170,13 @@ export default function Step5Completion({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  useEffect(() => {
+    if (isCallMode || generatedMessages.length === 0) return
+    const selectedMessage = generatedMessages[selectedMessageIndex] || generatedMessages[0]
+    void loadGuidance(selectedMessage, form.attachmentStyle || 'secure')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [generatedMessages, selectedMessageIndex, isCallMode, form.attachmentStyle])
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(messageToShare)
@@ -109,24 +186,6 @@ export default function Step5Completion({
     } catch {
       // noop
     }
-  }
-
-  const handleEdit = () => {
-    setEditedMessage(messageToShare)
-    setIsEditing(true)
-  }
-
-  const handleSaveEdit = () => {
-    if (editedMessage.trim()) {
-      updateForm({ messageText: editedMessage })
-      setGeneratedMessage(editedMessage)
-      setIsEditing(false)
-    }
-  }
-
-  const handleCancelEdit = () => {
-    setIsEditing(false)
-    setEditedMessage('')
   }
 
   const shareUrl = `https://wa.me/?text=${encodeURIComponent(messageToShare)}`
@@ -165,18 +224,8 @@ export default function Step5Completion({
           {!isCallMode && (
             <div className="rounded-2xl bg-white/50 backdrop-blur p-4 border border-white/50 text-left">
               <div className="flex items-center justify-between gap-3 mb-2">
-                <p className="text-xs font-medium text-slate-500">Personalized message</p>
+                <p className="text-xs font-medium text-slate-500">Choose your final message</p>
                 <div className="flex items-center gap-2">
-                  {!isEditing && (
-                    <button
-                      type="button"
-                      onClick={handleEdit}
-                      className="inline-flex items-center gap-1.5 text-xs font-medium text-calm-700 hover:text-calm-900"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                      Edit
-                    </button>
-                  )}
                   <button
                     type="button"
                     onClick={() => void runGeneration()}
@@ -198,37 +247,37 @@ export default function Step5Completion({
                 </div>
               </div>
               {generationError && <p className="text-xs text-amber-700 mb-2">{generationError}</p>}
-              {isEditing ? (
-                <div className="space-y-2">
-                  <textarea
-                    value={editedMessage}
-                    onChange={(e) => setEditedMessage(e.target.value)}
-                    className="w-full text-sm text-slate-700 border border-calm-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-calm-400 min-h-[120px] resize-none"
-                    placeholder="Edit your message..."
-                  />
-                  <div className="flex gap-2">
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={handleSaveEdit}
-                      className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-calm-500 text-white text-sm font-medium hover:bg-calm-600 transition-colors"
-                    >
-                      <Check className="w-4 h-4" />
-                      Save
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={handleCancelEdit}
-                      className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-300 transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                      Cancel
-                    </motion.button>
-                  </div>
+              {isGenerating ? (
+                <div className="flex items-center gap-2 text-sm text-slate-500 py-3">
+                  <LoaderCircle className="w-4 h-4 animate-spin" />
+                  <span>Generating 3 message options...</span>
+                </div>
+              ) : generatedMessages.length > 0 ? (
+                <div className="space-y-3">
+                  {generatedMessages.map((message, index) => {
+                    const isSelected = selectedMessageIndex === index
+                    return (
+                      <button
+                        key={`${index}-${message.slice(0, 16)}`}
+                        type="button"
+                        onClick={() => setSelectedMessageIndex(index)}
+                        className={`w-full rounded-xl border p-3 text-left transition-all ${
+                          isSelected
+                            ? 'border-calm-400 bg-calm-50/80'
+                            : 'border-slate-200 bg-white/70 hover:bg-white'
+                        }`}
+                      >
+                        <div className="mb-1 flex items-center justify-between gap-2">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Option {index + 1}</p>
+                          {isSelected && <CheckCircle2 className="w-4 h-4 text-calm-600" />}
+                        </div>
+                        <p className="text-sm text-slate-700 whitespace-pre-wrap">{message}</p>
+                      </button>
+                    )
+                  })}
                 </div>
               ) : (
-                <p className="text-sm text-slate-700 whitespace-pre-wrap">{messageToShare}</p>
+                <p className="text-sm text-slate-700 whitespace-pre-wrap">{fallbackMessage}</p>
               )}
             </div>
           )}
@@ -320,7 +369,7 @@ export default function Step5Completion({
                 className="w-full flex items-center justify-center gap-3 py-4 px-5 rounded-2xl bg-white text-slate-700 font-medium shadow-soft border border-slate-200 hover:shadow-lg transition-shadow"
               >
                 <Copy className="w-5 h-5" />
-                {copied ? 'Copied!' : 'Copy message to clipboard'}
+                {copied ? 'Copied!' : 'Copy selected message'}
               </motion.button>
 
               <div className="grid grid-cols-2 gap-3">
