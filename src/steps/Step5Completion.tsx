@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowLeft, CheckCircle2, Copy, Lightbulb, LoaderCircle, MessageCircle, Phone, Shield, Sparkles } from 'lucide-react'
 import type { FormState } from '../App'
@@ -9,6 +9,9 @@ const FALLBACK_GUIDANCE: AttachmentGuidance = {
   tip: "Keep the message clear, non-blaming, and focused on shared health.",
   positiveNote: "You're taking a positive step. Being open about sexual health builds trust.",
 } 
+
+const SPONSOR_KIT_VOUCHER_PARAGRAPH =
+  "I've included a free testing voucher through DX Your Way. To use it safely: download the official DX Your Way app from your app store and enter code [REFERENCE_CODE]. This is legitimate - you can verify by searching 'DX Your Way' in your app store first. No one will ask for passwords or personal info via text."
 
 type Step5CompletionProps = {
   form: FormState
@@ -38,9 +41,21 @@ export default function Step5Completion({
   const [coachingInsight, setCoachingInsight] = useState<CoachingInsight | null>(null)
   const [isLoadingGuidance, setIsLoadingGuidance] = useState(false)
   const isCallMode = form.communicationPreference === 'call'
+  const shouldAppendVoucherParagraph = !isCallMode && form.sponsorKit
+
+  const appendVoucherParagraphIfNeeded = (message: string): string => {
+    const base = message.trim()
+    if (!shouldAppendVoucherParagraph) return base
+    if (base.includes(SPONSOR_KIT_VOUCHER_PARAGRAPH)) return base
+    return `${base}\n\n${SPONSOR_KIT_VOUCHER_PARAGRAPH}`
+  }
 
   const fallbackMessage = form.messageText.trim() || getDefaultMessage(form)
-  const messageToShare = generatedMessages[selectedMessageIndex] || fallbackMessage
+  const displayMessages = useMemo(
+    () => generatedMessages.map((message) => appendVoucherParagraphIfNeeded(message)),
+    [generatedMessages, shouldAppendVoucherParagraph]
+  )
+  const messageToShare = displayMessages[selectedMessageIndex] || fallbackMessage
 
   const buildVariantContext = (baseForm: FormState, styleInstruction: string, slot: number): FormState => {
     const existingContext = baseForm.additionalMessage.trim()
@@ -234,7 +249,7 @@ export default function Step5Completion({
                 </div>
               ) : generatedMessages.length > 0 ? (
                 <div className="space-y-3">
-                  {generatedMessages.map((message, index) => {
+                  {displayMessages.map((message, index) => {
                     const isSelected = selectedMessageIndex === index
                     return (
                       <button
