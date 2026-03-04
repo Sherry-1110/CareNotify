@@ -223,28 +223,8 @@ export default function Step5Completion({
 
           {!isCallMode && (
             <div className="rounded-2xl bg-white/50 backdrop-blur p-4 border border-white/50 text-left">
-              <div className="flex items-center justify-between gap-3 mb-2">
+              <div className="mb-2">
                 <p className="text-xs font-medium text-slate-500">Choose your final message</p>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => void runGeneration()}
-                    disabled={isGenerating}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium text-calm-700 hover:text-calm-900 disabled:opacity-60 disabled:cursor-not-allowed"
-                  >
-                    {isGenerating ? (
-                      <>
-                        <LoaderCircle className="w-3.5 h-3.5 animate-spin" />
-                        Generating
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-3.5 h-3.5" />
-                        Regenerate
-                      </>
-                    )}
-                  </button>
-                </div>
               </div>
               {generationError && <p className="text-xs text-amber-700 mb-2">{generationError}</p>}
               {isGenerating ? (
@@ -285,29 +265,11 @@ export default function Step5Completion({
           {isCallMode && (
             <div className="space-y-4">
               <div className="rounded-2xl bg-gradient-to-br from-calm-50/80 to-white/95 p-6 border border-calm-200/70 shadow-soft">
-                <div className="flex items-center justify-between gap-3 mb-4">
+                <div className="mb-4">
                   <div className="flex items-center gap-2 text-calm-700">
                     <Sparkles className="w-5 h-5" />
                     <p className="text-sm font-semibold">Coaching Insights</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => void runGeneration()}
-                    disabled={isGenerating}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium text-calm-700 hover:text-calm-900 disabled:opacity-60 disabled:cursor-not-allowed"
-                  >
-                    {isGenerating ? (
-                      <>
-                        <LoaderCircle className="w-3.5 h-3.5 animate-spin" />
-                        Generating
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-3.5 h-3.5" />
-                        Regenerate
-                      </>
-                    )}
-                  </button>
                 </div>
                 
                 {generationError && <p className="text-xs text-amber-700 mb-3">{generationError}</p>}
