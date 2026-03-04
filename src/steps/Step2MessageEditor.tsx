@@ -122,16 +122,22 @@ export default function Step2MessageEditor({
 
   const toggleDisease = (diseaseValue: string) => {
     setHasInteractedWithStiSelection(true)
-    const isSelected = form.testResults.includes(diseaseValue)
+    const isSelected = form.testResults.some((d) => d.value === diseaseValue)
     if (isSelected) {
       updateForm({
-        testResults: form.testResults.filter((d) => d !== diseaseValue),
+        testResults: form.testResults.filter((d) => d.value !== diseaseValue),
       })
     } else {
       updateForm({
-        testResults: [...form.testResults, diseaseValue],
+        testResults: [...form.testResults, { value: diseaseValue, status: 'confirmed' }],
       })
     }
+  }
+
+  const setDiseaseStatus = (diseaseValue: string, status: 'confirmed' | 'suspected') => {
+    updateForm({
+      testResults: form.testResults.map((d) => (d.value === diseaseValue ? { ...d, status } : d)),
+    })
   }
 
   return (
@@ -250,43 +256,80 @@ export default function Step2MessageEditor({
               className="space-y-6"
             >
               <div className="space-y-3">
-                <div className="section-title">
-                  <FlaskConical className="w-5 h-5 text-calm-600 shrink-0" />
-                  <span>Type of disease (select all that apply)</span>
-                </div>
-                <div className="space-y-3">
-                  {DISEASE_OPTIONS.map((option) => {
-                    const isSelected = form.testResults.includes(option.value)
-                    return (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => toggleDisease(option.value)}
-                        className={`w-full text-left rounded-2xl border px-4 py-3 transition-all flex items-center gap-3 ${
-                          isSelected
-                            ? 'border-calm-400 bg-calm-50/90 shadow-soft'
-                            : 'border-white/60 bg-white/50 hover:bg-white/70'
-                        }`}
-                      >
-                        <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
-                          isSelected
-                            ? 'border-calm-500 bg-calm-500'
-                            : 'border-slate-300'
-                        }`}>
-                          {isSelected && <Check className="w-4 h-4 text-white" />}
-                        </div>
-                        <span className={`font-medium ${
-                          isSelected ? 'text-calm-800' : 'text-slate-700'
-                        }`}>
-                          {option.label}
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
-                {form.testResults.length === 0 && hasInteractedWithStiSelection && (
-                  <p className="text-sm text-red-600 mt-2">Select at least one STI to continue.</p>
-                )}
+                  <div className="section-title">
+                    <FlaskConical className="w-5 h-5 text-calm-600 shrink-0" />
+                    <span>Type of disease (select all that apply)</span>
+                  </div>
+                  <div className="space-y-3">
+                    {DISEASE_OPTIONS.map((option) => {
+                      const selected = form.testResults.find((d) => d.value === option.value)
+                      const isSelected = Boolean(selected)
+                      const status = selected?.status ?? 'confirmed'
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => toggleDisease(option.value)}
+                          className={`w-full text-left rounded-2xl border px-4 py-3 transition-all flex items-center gap-3 ${
+                            isSelected
+                              ? 'border-calm-400 bg-calm-50/90 shadow-soft'
+                              : 'border-white/60 bg-white/50 hover:bg-white/70'
+                          }`}
+                        >
+                          <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                            isSelected
+                              ? 'border-calm-500 bg-calm-500'
+                              : 'border-slate-300'
+                          }`}>
+                            {isSelected && <Check className="w-4 h-4 text-white" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className={`font-medium ${
+                              isSelected ? 'text-calm-800' : 'text-slate-700'
+                            }`}>
+                              {option.label}
+                            </span>
+                            {isSelected && (
+                              <div
+                                className="mt-2 inline-flex rounded-full border border-white/60 bg-white/40 p-1 gap-1"
+                                onClick={(e) => {
+                                  // Prevent parent disease toggle
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                }}
+                              >
+                                <button
+                                  type="button"
+                                  onClick={() => setDiseaseStatus(option.value, 'confirmed')}
+                                  className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                                    status === 'confirmed'
+                                      ? 'bg-gradient-primary text-white shadow-soft'
+                                      : 'text-slate-600 hover:bg-white/60'
+                                  }`}
+                                >
+                                  Confirmed
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setDiseaseStatus(option.value, 'suspected')}
+                                  className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                                    status === 'suspected'
+                                      ? 'bg-gradient-primary text-white shadow-soft'
+                                      : 'text-slate-600 hover:bg-white/60'
+                                  }`}
+                                >
+                                  Suspected
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                  {form.testResults.length === 0 && hasInteractedWithStiSelection && (
+                    <p className="text-sm text-red-600 mt-2">Select at least one STI to continue.</p>
+                  )}
               </div>
             </motion.div>
           )}

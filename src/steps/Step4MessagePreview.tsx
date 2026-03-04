@@ -16,21 +16,29 @@ const TEST_LABELS: Record<string, string> = {
 
 function getDefaultMessage(form: FormState): string {
   const name = form.partnerName || '*insert partner name*'
-  const diseases = form.testResults
-    .map((result) => TEST_LABELS[result] ?? result)
-    .join(', ')
+  const confirmed = form.testResults
+    .filter((r) => (r?.status ?? 'confirmed') === 'confirmed')
+    .map((r) => TEST_LABELS[r.value] ?? r.value)
+  const suspected = form.testResults
+    .filter((r) => r?.status === 'suspected')
+    .map((r) => TEST_LABELS[r.value] ?? r.value)
+
+  const disclosureParts: string[] = []
+  if (confirmed.length > 0) disclosureParts.push(`I tested positive for ${confirmed.join(', ')}.`)
+  if (suspected.length > 0) disclosureParts.push(`There’s also a chance I may have ${suspected.join(', ')} (not confirmed yet).`)
+  const disclosure = disclosureParts.length > 0 ? disclosureParts.join(' ') : 'I tested positive for an STI.'
   
   if (form.sponsorKit) {
     if (form.testResults.length === 0) {
       return `Hey ${name}, I tested positive for an STI. I wanted to let you know so you can get tested too. I'm not accusing you of anything — sometimes it can show up later without symptoms. I care about us and just want us both to be healthy. I actually ordered an at-home test kit for you just to make things easier and totally up to you if you want to use it. I just wanted to handle this responsibly.`
     }
-    return `Hey ${name}, I tested positive for ${diseases}. I wanted to let you know so you can get tested too. I'm not accusing you of anything — sometimes it can show up later without symptoms. I care about us and just want us both to be healthy. I actually ordered an at-home test kit for you just to make things easier and totally up to you if you want to use it. I just wanted to handle this responsibly.`
+    return `Hey ${name}, ${disclosure} I wanted to let you know so you can get tested too. I'm not accusing you of anything — sometimes it can show up later without symptoms. I care about us and just want us both to be healthy. I actually ordered an at-home test kit for you just to make things easier and totally up to you if you want to use it. I just wanted to handle this responsibly.`
   }
   
   if (form.testResults.length === 0) {
     return `Hey ${name}, I tested positive for an STI. I wanted to let you know so you can get tested too. I'm not accusing you of anything — sometimes it can show up later without symptoms. I care about us and just want us both to be healthy.`
   }
-  return `Hey ${name}, I tested positive for ${diseases}. I wanted to let you know so you can get tested too. I'm not accusing you of anything — sometimes it can show up later without symptoms. I care about us and just want us both to be healthy.`
+  return `Hey ${name}, ${disclosure} I wanted to let you know so you can get tested too. I'm not accusing you of anything — sometimes it can show up later without symptoms. I care about us and just want us both to be healthy.`
 }
 
 type Step4MessagePreviewProps = {

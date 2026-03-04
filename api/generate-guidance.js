@@ -198,7 +198,15 @@ export default async function handler(req, res) {
 
   const style = normalize(attachmentStyle) || 'secure'
   const diagnosis = Array.isArray(testResults) && testResults.length > 0
-    ? testResults.map(t => t.replace(/_/g, ' ')).join(', ')
+    ? testResults
+      .map((t) => {
+        if (typeof t === 'string') return t.replace(/_/g, ' ')
+        const v = normalize(t?.value)
+        const s = normalize(t?.status) === 'suspected' ? 'suspected' : 'confirmed'
+        return v ? `${v.replace(/_/g, ' ')} (${s})` : ''
+      })
+      .filter(Boolean)
+      .join(', ')
     : 'an STI'
 
   const promptParts = [

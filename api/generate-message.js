@@ -80,7 +80,7 @@ export default async function handler(req, res) {
     partnerName,
     partnerRelationship,
     communicationPreference,
-    testResult,
+    testResults,
     attachmentStyle,
     contextFiles,
   } = req.body ?? {}
@@ -88,14 +88,27 @@ export default async function handler(req, res) {
   const safePartnerName = normalizeString(partnerName) || 'there'
   const relationshipLabel = RELATIONSHIP_LABELS[partnerRelationship] || 'partner'
   const communicationLabel = COMMUNICATION_LABELS[communicationPreference] || 'message'
-  const testLabel = TEST_LABELS[testResult] || 'an STI'
+  const selected = Array.isArray(testResults) ? testResults : []
+  const confirmed = []
+  const suspected = []
+  selected.forEach((item) => {
+    const value = normalizeString(item?.value)
+    if (!value) return
+    const label = TEST_LABELS[value] || value
+    if (normalizeString(item?.status) === 'suspected') suspected.push(label)
+    else confirmed.push(label)
+  })
+  const diagnosisLabel =
+    confirmed.length || suspected.length
+      ? [
+          confirmed.length ? `confirmed: ${confirmed.join(', ')}` : '',
+          suspected.length ? `suspected: ${suspected.join(', ')}` : '',
+        ]
+          .filter(Boolean)
+          .join(' | ')
+      : 'an STI'
   const attachmentStyleLabel = ATTACHMENT_STYLE_LABELS[attachmentStyle] || 'unspecified'
   const files = Array.isArray(contextFiles) ? contextFiles.slice(0, 2) : []
-
-  if (!testResult) {
-    res.status(400).json({ error: 'Missing test result.' })
-    return
-  }
 
   try {
     const systemPrompt = [
@@ -112,7 +125,7 @@ export default async function handler(req, res) {
       `Recipient name: ${safePartnerName}`,
       `Relationship context: ${relationshipLabel}`,
       `Preferred communication channel: ${communicationLabel}`,
-      `Diagnosis to disclose: ${testLabel}`,
+      `Diagnosis to disclose: ${diagnosisLabel}`,
       `Sender attachment style: ${attachmentStyleLabel}`,
       'If images are attached, infer relevant emotional/contextual tone and incorporate it softly without making unverifiable claims.',
       'Target length: 3-6 concise sentences.',

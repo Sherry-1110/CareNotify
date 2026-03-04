@@ -13,7 +13,7 @@ export type FormState = {
   partnerName: string
   partnerRelationship: '' | 'current_partner' | 'previous_partner' | 'future_partner'
   communicationPreference: '' | 'text' | 'call'
-  testResults: string[]
+  testResults: Array<{ value: string; status: 'confirmed' | 'suspected' }>
   attachmentStyle: '' | 'secure' | 'anxious' | 'avoidant' | 'disorganized'
   lastInteractionFiles: File[]
   additionalMessage: string

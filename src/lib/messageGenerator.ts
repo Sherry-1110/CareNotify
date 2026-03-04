@@ -18,25 +18,66 @@ const TEST_LABELS: Record<string, string> = {
   mycoplasma_genitalium: 'Mycoplasma Genitalium',
 }
 
+type SelectedTest = { value: string; status: 'confirmed' | 'suspected' }
+
+function normalizeSelectedTests(testResults: unknown): SelectedTest[] {
+  if (!Array.isArray(testResults)) return []
+
+  // Backward compat: string[] means confirmed
+  if (testResults.every((t) => typeof t === 'string')) {
+    return (testResults as string[])
+      .filter((t) => t.length > 0)
+      .map((value) => ({ value, status: 'confirmed' }))
+  }
+
+  return (testResults as Array<Partial<SelectedTest>>)
+    .filter((t) => typeof t?.value === 'string' && t.value.length > 0)
+    .map((t) => ({
+      value: t.value as string,
+      status: t.status === 'suspected' ? 'suspected' : 'confirmed',
+    }))
+}
+
 function getTestLabel(testResults: unknown): string {
-  if (Array.isArray(testResults)) {
-    const labels = testResults
-      .filter((t): t is string => typeof t === 'string' && t.length > 0)
-      .map((t) => TEST_LABELS[t] ?? t)
-    return labels.length > 0 ? labels.join(', ') : 'an STI'
+  const selected = normalizeSelectedTests(testResults)
+  if (selected.length > 0) {
+    const labels = selected.map((t) => TEST_LABELS[t.value] ?? t.value)
+    return labels.join(', ')
   }
 
-  if (typeof testResults === 'string' && testResults) {
-    return TEST_LABELS[testResults] ?? testResults
-  }
-
+  if (typeof testResults === 'string' && testResults) return TEST_LABELS[testResults] ?? testResults
   return 'an STI'
+}
+
+function getDiagnosesStatusSummary(testResults: unknown): { confirmed: string[]; suspected: string[] } {
+  const selected = normalizeSelectedTests(testResults)
+  const confirmed: string[] = []
+  const suspected: string[] = []
+
+  selected.forEach(({ value, status }) => {
+    const label = TEST_LABELS[value] ?? value
+    if (status === 'suspected') suspected.push(label)
+    else confirmed.push(label)
+  })
+
+  return { confirmed, suspected }
 }
 
 export function getDefaultMessage(form: FormState): string {
   const name = form.partnerName || '[Name]'
-  const test = getTestLabel(form.testResults)
-  return `Hi ${name}, I wanted to let you know I recently tested positive for ${test}. Please get tested when you can. I'm sharing this so we can both take care of our health.`
+  const { confirmed, suspected } = getDiagnosesStatusSummary(form.testResults)
+
+  const parts: string[] = []
+  if (confirmed.length > 0) {
+    parts.push(`I wanted to let you know I recently tested positive for ${confirmed.join(', ')}.`)
+  }
+  if (suspected.length > 0) {
+    const suspectedLabel = suspected.join(', ')
+    parts.push(`I also want to share there’s a chance I may have ${suspectedLabel} (not confirmed yet).`)
+  }
+
+  const disclosure = parts.length > 0 ? parts.join(' ') : 'I wanted to let you know I recently tested positive for an STI.'
+  return `Hi ${name}, ${disclosure} Please get tested when you can. I'm sharing this so we can both take care of our health.`
 }
 
 function fileToDataUrl(file: File): Promise<string> {
@@ -85,7 +126,16 @@ async function generateViaFrontendOpenAI(
 ): Promise<string> {
   const partnerName = normalize(form.partnerName) || 'there'
   const relationship = normalize(form.partnerRelationship) || 'partner'
-  const diagnosis = getTestLabel(form.testResults)
+  const { confirmed, suspected } = getDiagnosesStatusSummary(form.testResults)
+  const diagnosis =
+    confirmed.length || suspected.length
+      ? [
+          confirmed.length ? `confirmed: ${confirmed.join(', ')}` : '',
+          suspected.length ? `suspected: ${suspected.join(', ')}` : '',
+        ]
+          .filter(Boolean)
+          .join(' | ')
+      : 'an STI'
   const attachmentStyle = normalize(form.attachmentStyle) || 'secure'
   const additionalMessage = normalize(form.additionalMessage)
 
@@ -220,7 +270,7 @@ export async function generateMessageAndStyleFromForm(form: FormState): Promise<
       partnerName: form.partnerName,
       partnerRelationship: form.partnerRelationship,
       communicationPreference: form.communicationPreference,
-      testResult: form.testResults[0] ?? '',
+      testResults: form.testResults,
       attachmentStyle: form.attachmentStyle,
       additionalMessage: form.additionalMessage,
       contextFiles,
@@ -360,7 +410,16 @@ async function generateGuidanceViaFrontendOpenAI(
 ): Promise<AttachmentGuidance> {
   const partnerName = normalize(form.partnerName) || 'there'
   const relationship = normalize(form.partnerRelationship) || 'partner'
-  const diagnosis = getTestLabel(form.testResults)
+  const { confirmed, suspected } = getDiagnosesStatusSummary(form.testResults)
+  const diagnosis =
+    confirmed.length || suspected.length
+      ? [
+          confirmed.length ? `confirmed: ${confirmed.join(', ')}` : '',
+          suspected.length ? `suspected: ${suspected.join(', ')}` : '',
+        ]
+          .filter(Boolean)
+          .join(' | ')
+      : 'an STI'
   const attachmentStyle = normalize(form.attachmentStyle) || 'secure'
   const additionalMessage = normalize(form.additionalMessage)
 
