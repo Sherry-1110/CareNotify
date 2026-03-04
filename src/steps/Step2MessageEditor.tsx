@@ -54,6 +54,11 @@ const ATTACHMENT_STYLE_OPTIONS = [
     label: 'Disorganized',
     description: 'Conflicted, fearful behavior.',
   },
+  {
+    value: 'not_sure',
+    label: "I'm Not Sure",
+    description: "Not sure yet. We'll use your context to guide the message.",
+  },
 ] as const
 
 type Step2MessageEditorProps = {

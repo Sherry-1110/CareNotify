@@ -115,6 +115,14 @@ function normalize(value: unknown): string {
   return typeof value === 'string' ? value.trim() : ''
 }
 
+function normalizeAttachmentStyle(value: unknown): string {
+  const candidate = normalize(value).toLowerCase()
+  if (candidate === 'secure' || candidate === 'anxious' || candidate === 'avoidant' || candidate === 'disorganized') {
+    return candidate
+  }
+  return ''
+}
+
 function getOpenAIKey(): string {
   return normalize(import.meta.env.VITE_OPENAI_API_KEY) || normalize(import.meta.env.OPENAI_API_KEY)
 }
@@ -136,7 +144,7 @@ async function generateViaFrontendOpenAI(
           .filter(Boolean)
           .join(' | ')
       : 'an STI'
-  const attachmentStyle = normalize(form.attachmentStyle) || 'secure'
+  const attachmentStyle = normalizeAttachmentStyle(form.attachmentStyle) || 'secure'
   const additionalMessage = normalize(form.additionalMessage)
 
   const promptParts = [
@@ -249,7 +257,7 @@ export type MessageWithStyle = {
 export async function generateMessageAndStyleFromForm(form: FormState): Promise<MessageWithStyle> {
   const contextFiles = await buildContextFiles(form.lastInteractionFiles)
   const frontendApiKey = getOpenAIKey()
-  const selectedAttachmentStyle = normalize(form.attachmentStyle)
+  const selectedAttachmentStyle = normalizeAttachmentStyle(form.attachmentStyle)
 
   if (frontendApiKey) {
     // Respect explicit user selection from Step 3; only infer as fallback.
@@ -271,7 +279,7 @@ export async function generateMessageAndStyleFromForm(form: FormState): Promise<
       partnerRelationship: form.partnerRelationship,
       communicationPreference: form.communicationPreference,
       testResults: form.testResults,
-      attachmentStyle: form.attachmentStyle,
+      attachmentStyle: normalizeAttachmentStyle(form.attachmentStyle),
       additionalMessage: form.additionalMessage,
       contextFiles,
     }),
@@ -310,6 +318,76 @@ export type ReactionScenario = {
 export type CoachingInsight = {
   scenarios: ReactionScenario[]
   attachmentStyle: string
+}
+
+function getFallbackCoachingInsight(attachmentStyle: string): CoachingInsight {
+  return {
+    attachmentStyle,
+    scenarios: [
+      {
+        type: 'likely',
+        title: 'Most Likely Reaction',
+        theirResponse: 'Thanks for telling me. I need a little time to process this.',
+        whyThisReaction: 'People often need time to regulate emotions after a difficult health conversation.',
+        yourBestReply: "Totally understood. Take the time you need, and I'm here when you're ready.",
+      },
+      {
+        type: 'challenging',
+        title: 'Challenging Reaction',
+        theirResponse: 'I feel overwhelmed and upset right now.',
+        whyThisReaction: 'Stress reactions can show up as withdrawal, blame, or emotional intensity.',
+        yourBestReply: "I hear you. I'm not here to blame anyone, just to share this responsibly and keep us both safe.",
+      },
+      {
+        type: 'best',
+        title: 'Best Case Reaction',
+        theirResponse: "Thanks for being honest. Let's figure out next steps.",
+        whyThisReaction: 'Clear and respectful disclosure can create space for cooperative problem-solving.',
+        yourBestReply: "I really appreciate that. Let's handle this calmly and make sure we're both taken care of.",
+      },
+    ],
+  }
+}
+
+function repairLikelyJsonFormattingIssues(input: string): string {
+  return input
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/\u00A0/g, ' ')
+    .replace(/:\s*\\+"/g, ': "')
+    .replace(/\\+"\s*([,}\]])/g, '"$1')
+    .replace(/,\s*([}\]])/g, '$1')
+}
+
+function extractPrimaryJsonObject(input: string): string {
+  const firstBrace = input.indexOf('{')
+  const lastBrace = input.lastIndexOf('}')
+  if (firstBrace === -1 || lastBrace <= firstBrace) return input
+  return input.slice(firstBrace, lastBrace + 1)
+}
+
+function parseCoachingInsightResponse(raw: string): CoachingInsight | null {
+  const candidates = [
+    raw.trim(),
+    extractPrimaryJsonObject(raw.trim()),
+    repairLikelyJsonFormattingIssues(raw.trim()),
+    repairLikelyJsonFormattingIssues(extractPrimaryJsonObject(raw.trim())),
+  ]
+
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(candidate) as Partial<CoachingInsight>
+      if (!Array.isArray(parsed.scenarios)) continue
+      return {
+        attachmentStyle: normalize(parsed.attachmentStyle) || 'secure',
+        scenarios: parsed.scenarios as ReactionScenario[],
+      }
+    } catch {
+      // Continue trying other repaired variants.
+    }
+  }
+
+  return null
 }
 // First determine attachment style from context
 async function determineAttachmentStyleViaFrontendOpenAI(
@@ -420,7 +498,7 @@ async function generateGuidanceViaFrontendOpenAI(
           .filter(Boolean)
           .join(' | ')
       : 'an STI'
-  const attachmentStyle = normalize(form.attachmentStyle) || 'secure'
+  const attachmentStyle = normalizeAttachmentStyle(form.attachmentStyle) || 'secure'
   const additionalMessage = normalize(form.additionalMessage)
 
   const promptParts = [
@@ -550,7 +628,7 @@ export async function generateGuidanceFromForm(form: FormState, draftedMessage: 
       partnerRelationship: form.partnerRelationship,
       testResults: form.testResults,
       additionalMessage: form.additionalMessage,
-      attachmentStyle: form.attachmentStyle,
+      attachmentStyle: normalizeAttachmentStyle(form.attachmentStyle),
       draftedMessage,
       contextFiles,
     }),
@@ -577,7 +655,7 @@ async function generateCoachingInsightViaFrontendOpenAI(
   const partnerName = normalize(form.partnerName) || 'there'
   const relationship = normalize(form.partnerRelationship) || 'partner'
   const diagnosis = getTestLabel(form.testResults)
-  const attachmentStyle = normalize(form.attachmentStyle) || 'secure'
+  const attachmentStyle = normalizeAttachmentStyle(form.attachmentStyle) || 'secure'
   const additionalMessage = normalize(form.additionalMessage)
 
   console.log('Generating coaching insight with:', {
@@ -722,23 +800,23 @@ Output only valid JSON.`
   }
   cleanedResponse = cleanedResponse.trim()
 
-  try {
-    const parsed = JSON.parse(cleanedResponse) as CoachingInsight
+  const parsed = parseCoachingInsightResponse(cleanedResponse)
+  if (parsed) {
     console.log('Parsed coaching insight:', parsed)
     return {
       scenarios: parsed.scenarios || [],
-      attachmentStyle: attachmentStyle,
+      attachmentStyle,
     }
-  } catch (parseError) {
-    console.error('Failed to parse coaching insight JSON:', parseError, 'Raw response:', rawResponse)
-    throw new Error('Failed to parse coaching insight response')
   }
+
+  console.error('Failed to parse coaching insight JSON after repair attempts. Raw response:', rawResponse)
+  return getFallbackCoachingInsight(attachmentStyle)
 }
 
 export async function generateCoachingInsightFromForm(form: FormState): Promise<CoachingInsight> {
   const contextFiles = await buildContextFiles(form.lastInteractionFiles)
   const frontendApiKey = getOpenAIKey()
-  const selectedAttachmentStyle = normalize(form.attachmentStyle)
+  const selectedAttachmentStyle = normalizeAttachmentStyle(form.attachmentStyle)
 
   if (frontendApiKey) {
     // Determine attachment style if not already set
@@ -757,7 +835,7 @@ export async function generateCoachingInsightFromForm(form: FormState): Promise<
       partnerName: form.partnerName,
       partnerRelationship: form.partnerRelationship,
       additionalMessage: form.additionalMessage,
-      attachmentStyle: form.attachmentStyle,
+      attachmentStyle: normalizeAttachmentStyle(form.attachmentStyle),
       testResults: form.testResults,
       contextFiles,
     }),
@@ -771,6 +849,6 @@ export async function generateCoachingInsightFromForm(form: FormState): Promise<
   const data = (await response.json()) as CoachingInsight
   return {
     scenarios: data.scenarios || [],
-    attachmentStyle: normalize(data.attachmentStyle) || form.attachmentStyle || 'secure',
+    attachmentStyle: normalizeAttachmentStyle(data.attachmentStyle) || normalizeAttachmentStyle(form.attachmentStyle) || 'secure',
   }
 }
