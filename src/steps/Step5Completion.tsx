@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowLeft, CheckCircle2, Copy, Lightbulb, LoaderCircle, MessageCircle, Phone, Shield, Sparkles } from 'lucide-react'
+import { ArrowLeft, ArrowRight, CheckCircle2, Copy, Lightbulb, LoaderCircle, MessageCircle, Phone, Shield, Sparkles } from 'lucide-react'
 import type { FormState } from '../App'
 import { generateMessageAndStyleFromForm, generateGuidanceFromForm, generateCoachingInsightFromForm, getDefaultMessage, type AttachmentGuidance, type CoachingInsight } from '../lib/messageGenerator'
 
@@ -42,6 +42,11 @@ export default function Step5Completion({
   const [coachingInsight, setCoachingInsight] = useState<CoachingInsight | null>(null)
   const [isLoadingGuidance, setIsLoadingGuidance] = useState(false)
   const isCallMode = form.communicationPreference === 'call'
+  const [callFlowStage, setCallFlowStage] = useState<'questionnaire' | 'insights'>(
+    isCallMode ? 'questionnaire' : 'insights'
+  )
+  const [callFeelingInput, setCallFeelingInput] = useState(form.callConversationFeeling || '')
+  const [callFearInput, setCallFearInput] = useState(form.callReactionFears || '')
   const shouldAppendVoucherParagraph = !isCallMode && form.sponsorKit
 
   const appendVoucherParagraphIfNeeded = (message: string): string => {
@@ -127,13 +132,14 @@ export default function Step5Completion({
     return { messages, attachmentStyle }
   }
 
-  const runGeneration = async () => {
+  const runGeneration = async (formOverride?: FormState) => {
+    const sourceForm = formOverride ?? form
     setIsGenerating(true)
     setGenerationError('')
     try {
       if (isCallMode) {
         // For call mode, generate coaching insight instead of message
-        const insight = await generateCoachingInsightFromForm(form)
+        const insight = await generateCoachingInsightFromForm(sourceForm)
         console.log('Generated coaching insight:', insight)
         setCoachingInsight(insight)
         // Update form with determined attachment style
@@ -157,7 +163,7 @@ export default function Step5Completion({
       setGenerationError(`Could not generate content. ${details}`)
       // Try to load guidance with fallback message for text mode
       if (!isCallMode) {
-        await loadGuidance(form.messageText.trim() || getDefaultMessage(form), form.attachmentStyle || 'secure')
+        await loadGuidance(sourceForm.messageText.trim() || getDefaultMessage(sourceForm), sourceForm.attachmentStyle || 'secure')
       }
     } finally {
       setIsGenerating(false)
@@ -180,9 +186,10 @@ export default function Step5Completion({
   }
 
   useEffect(() => {
+    if (isCallMode) return
     void runGeneration()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [isCallMode])
 
   useEffect(() => {
     if (isCallMode || generatedMessages.length === 0) return
@@ -190,6 +197,28 @@ export default function Step5Completion({
     void loadGuidance(selectedMessage, form.attachmentStyle || 'secure')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [generatedMessages, selectedMessageIndex, isCallMode, form.attachmentStyle])
+
+  const handleCallQuestionnaireContinue = async () => {
+    const trimmedFeeling = callFeelingInput.trim()
+    const trimmedFears = callFearInput.trim()
+    if (isGenerating) return
+
+    const updates: Partial<FormState> = {
+      callConversationFeeling: trimmedFeeling,
+      callReactionFears: trimmedFears,
+    }
+    const formForGeneration: FormState = {
+      ...form,
+      ...updates,
+      callConversationFeeling: trimmedFeeling,
+      callReactionFears: trimmedFears,
+    }
+
+    updateForm(updates)
+    setCallFlowStage('insights')
+    setCoachingInsight(null)
+    await runGeneration(formForGeneration)
+  }
 
   const handleCopy = async () => {
     try {
@@ -214,7 +243,9 @@ export default function Step5Completion({
         className="flex flex-col items-center space-y-8 w-full"
       >
         <div className="w-full text-center">
-          <h2 className="text-2xl font-bold tracking-tight text-calm-900">You're all set!</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-calm-900">
+            {isCallMode && callFlowStage === 'questionnaire' ? 'Quick check-in (optional)' : "You're all set!"}
+          </h2>
         </div>
 
         <div className="w-full space-y-4">
@@ -295,7 +326,35 @@ export default function Step5Completion({
             </div>
           )}
 
-          {isCallMode && (
+          {isCallMode && callFlowStage === 'questionnaire' && (
+            <div className="space-y-4">
+              <div className="rounded-2xl bg-white/70 backdrop-blur p-5 border border-white/60 shadow-soft">
+                <div className="space-y-4">
+                  <label className="block">
+                    <span className="text-sm font-medium text-slate-700">How are you feeling about this conversation?</span>
+                    <textarea
+                      value={callFeelingInput}
+                      onChange={(event) => setCallFeelingInput(event.target.value)}
+                      placeholder="Short answer..."
+                      className="mt-2 w-full min-h-[96px] rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-sm text-slate-700 resize-y focus:border-calm-500 focus:ring-2 focus:ring-calm-300/70 outline-none transition-all"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="text-sm font-medium text-slate-700">What reactions do you anticipate or fear the most?</span>
+                    <textarea
+                      value={callFearInput}
+                      onChange={(event) => setCallFearInput(event.target.value)}
+                      placeholder="Short answer..."
+                      className="mt-2 w-full min-h-[96px] rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-sm text-slate-700 resize-y focus:border-calm-500 focus:ring-2 focus:ring-calm-300/70 outline-none transition-all"
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {isCallMode && callFlowStage === 'insights' && (
             <div className="space-y-4">
               <div className="rounded-2xl bg-gradient-to-br from-calm-50/80 to-white/95 p-6 border border-calm-200/70 shadow-soft">
                 <div className="mb-4">
@@ -395,7 +454,7 @@ export default function Step5Completion({
             </>
           )}
 
-          {isCallMode && (
+          {isCallMode && callFlowStage === 'insights' && (
             <motion.a
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -425,25 +484,48 @@ export default function Step5Completion({
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3">
-            <motion.button
-              type="button"
-              whileTap={{ scale: 0.98 }}
-              onClick={onBackToSponsorKit}
-              className="w-full flex items-center justify-center py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all"
-            >
-              <ArrowLeft className="w-5 h-5 shrink-0" />
-            </motion.button>
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              onClick={onNewMessage}
-              className="w-full py-4 px-4 rounded-2xl bg-gradient-primary text-white font-medium shadow-soft border border-white/20 hover:shadow-lg transition-shadow"
-            >
-              New Message
-            </motion.button>
-          </div>
+          {isCallMode && callFlowStage === 'questionnaire' ? (
+            <div className="grid grid-cols-2 gap-3">
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.98 }}
+                onClick={onBackToSponsorKit}
+                className="w-full flex items-center justify-center py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all"
+              >
+                <ArrowLeft className="w-5 h-5 shrink-0" />
+              </motion.button>
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                onClick={() => void handleCallQuestionnaireContinue()}
+                disabled={isGenerating}
+                className="w-full flex items-center justify-center py-4 rounded-2xl bg-gradient-primary text-white font-medium shadow-soft border border-white/20 hover:shadow-lg transition-shadow disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isGenerating ? <LoaderCircle className="w-5 h-5 animate-spin" /> : <ArrowRight className="w-5 h-5 shrink-0" />}
+              </motion.button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.98 }}
+                onClick={onBackToSponsorKit}
+                className="w-full flex items-center justify-center py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all"
+              >
+                <ArrowLeft className="w-5 h-5 shrink-0" />
+              </motion.button>
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                onClick={onNewMessage}
+                className="w-full py-4 px-4 rounded-2xl bg-gradient-primary text-white font-medium shadow-soft border border-white/20 hover:shadow-lg transition-shadow"
+              >
+                New Message
+              </motion.button>
+            </div>
+          )}
         </div>
 
         {isGuest && (

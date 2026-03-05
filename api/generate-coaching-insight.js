@@ -88,6 +88,8 @@ export default async function handler(req, res) {
     partnerName,
     partnerRelationship,
     additionalMessage,
+    callConversationFeeling,
+    callReactionFears,
     attachmentStyle,
     testResults,
     contextFiles,
@@ -116,6 +118,12 @@ export default async function handler(req, res) {
   ]
   if (normalize(additionalMessage)) {
     promptParts.push(`User Context: ${additionalMessage}`)
+  }
+  if (normalize(callConversationFeeling)) {
+    promptParts.push(`Caller Emotional State: ${callConversationFeeling}`)
+  }
+  if (normalize(callReactionFears)) {
+    promptParts.push(`Expected/Fearful Reactions: ${callReactionFears}`)
   }
 
   const userContent = [{ type: 'input_text', text: promptParts.join('\n') }]

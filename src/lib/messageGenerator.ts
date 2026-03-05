@@ -657,12 +657,16 @@ async function generateCoachingInsightViaFrontendOpenAI(
   const diagnosis = getTestLabel(form.testResults)
   const attachmentStyle = normalizeAttachmentStyle(form.attachmentStyle) || 'secure'
   const additionalMessage = normalize(form.additionalMessage)
+  const callConversationFeeling = normalize(form.callConversationFeeling)
+  const callReactionFears = normalize(form.callReactionFears)
 
   console.log('Generating coaching insight with:', {
     partnerName,
     relationship,
     diagnosis,
     attachmentStyle,
+    callConversationFeeling,
+    callReactionFears,
   })
 
   const promptParts = [
@@ -674,6 +678,12 @@ async function generateCoachingInsightViaFrontendOpenAI(
 
   if (additionalMessage) {
     promptParts.push(`User Context: ${additionalMessage}`)
+  }
+  if (callConversationFeeling) {
+    promptParts.push(`Caller Emotional State: ${callConversationFeeling}`)
+  }
+  if (callReactionFears) {
+    promptParts.push(`Expected/Fearful Reactions: ${callReactionFears}`)
   }
 
   const coachingPrompt = `You are the CareNotify Reaction Predictor, specializing in attachment theory and communication psychology. Your task is to generate three realistic reaction scenarios (Most Likely, Challenging, and Best Case) for a phone call disclosure about an STI diagnosis.
@@ -835,6 +845,8 @@ export async function generateCoachingInsightFromForm(form: FormState): Promise<
       partnerName: form.partnerName,
       partnerRelationship: form.partnerRelationship,
       additionalMessage: form.additionalMessage,
+      callConversationFeeling: form.callConversationFeeling,
+      callReactionFears: form.callReactionFears,
       attachmentStyle: normalizeAttachmentStyle(form.attachmentStyle),
       testResults: form.testResults,
       contextFiles,

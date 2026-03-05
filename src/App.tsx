@@ -17,6 +17,8 @@ export type FormState = {
   attachmentStyle: '' | 'secure' | 'anxious' | 'avoidant' | 'disorganized' | 'not_sure'
   lastInteractionFiles: File[]
   additionalMessage: string
+  callConversationFeeling: string
+  callReactionFears: string
   messageText: string
   sponsorKit: boolean
 }
@@ -32,6 +34,8 @@ const initialFormState: FormState = {
   attachmentStyle: '',
   lastInteractionFiles: [],
   additionalMessage: '',
+  callConversationFeeling: '',
+  callReactionFears: '',
   messageText: '',
   sponsorKit: false,
 }
@@ -97,6 +101,8 @@ function App() {
       attachmentStyle: '',
       lastInteractionFiles: [],
       additionalMessage: '',
+      callConversationFeeling: '',
+      callReactionFears: '',
       messageText: '',
       sponsorKit: false,
     }))
