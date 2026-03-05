@@ -13,6 +13,10 @@ const FALLBACK_GUIDANCE: AttachmentGuidance = {
 const SPONSOR_KIT_VOUCHER_PARAGRAPH =
   "I've included a free testing voucher through DX Your Way. To use it safely: download the official DX Your Way app from your app store and enter code [REFERENCE_CODE]. This is legitimate - you can verify by searching 'DX Your Way' in your app store first. No one will ask for passwords or personal info via text."
 
+/** Short line for the call script when user offers a kit; full message goes in the copyable box below. */
+const SPONSOR_KIT_SCRIPT_LINE =
+  "I'm also sending you a message with a free testing voucher and the code to use it."
+
 type Step5CompletionProps = {
   form: FormState
   updateForm: (u: Partial<FormState>) => void
@@ -48,6 +52,7 @@ export default function Step5Completion({
   const [callFeelingInput, setCallFeelingInput] = useState(form.callConversationFeeling || '')
   const [callFearInput, setCallFearInput] = useState(form.callReactionFears || '')
   const [recommendedScript, setRecommendedScript] = useState<string | null>(null)
+  const [voucherCopied, setVoucherCopied] = useState(false)
   const scriptTextareaRef = useRef<HTMLTextAreaElement>(null)
   const shouldAppendVoucherParagraph = !isCallMode && form.sponsorKit
 
@@ -153,7 +158,11 @@ export default function Step5Completion({
           generateCallScriptFromForm(sourceForm),
           generateCoachingInsightFromForm(sourceForm),
         ])
-        setRecommendedScript(script)
+        const scriptWithVoucher =
+          sourceForm.sponsorKit && script
+            ? `${script.trimEnd()}\n\n${SPONSOR_KIT_SCRIPT_LINE}`
+            : script
+        setRecommendedScript(scriptWithVoucher)
         console.log('Generated coaching insight:', insight)
         setCoachingInsight(insight)
         // Update form with determined attachment style
@@ -415,13 +424,6 @@ export default function Step5Completion({
                   </div>
                 </div>
 
-                {recommendedScript && (
-                  <div className="mb-5 rounded-xl border border-calm-200 bg-white/80 p-4 min-h-0">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Your full script</p>
-                    <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed break-words">{recommendedScript}</p>
-                  </div>
-                )}
-                
                 {generationError && <p className="text-xs text-amber-700 mb-3">{generationError}</p>}
                 
                 {isGenerating ? (
@@ -513,16 +515,45 @@ export default function Step5Completion({
           )}
 
           {isCallMode && callFlowStage === 'insights' && (
-            <motion.a
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              href="tel:"
-              onClick={onLogShare}
-              className="flex items-center justify-center gap-2 py-4 px-4 rounded-2xl bg-[#34C759] text-white font-medium hover:shadow-lg border border-white/20 transition-shadow"
-            >
-              <Phone className="w-5 h-5" />
-              Open phone dialer
-            </motion.a>
+            <>
+              <motion.a
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                href="tel:"
+                onClick={onLogShare}
+                className="flex items-center justify-center gap-2 py-4 px-4 rounded-2xl bg-[#34C759] text-white font-medium hover:shadow-lg border border-white/20 transition-shadow"
+              >
+                <Phone className="w-5 h-5" />
+                Open phone dialer
+              </motion.a>
+
+              {form.sponsorKit && (
+                <div className="rounded-2xl border border-calm-200/70 bg-white/80 p-4 shadow-soft">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Message to send (with voucher code)</p>
+                  <p className="text-sm text-slate-700 leading-relaxed mb-3 whitespace-pre-wrap">
+                    {SPONSOR_KIT_VOUCHER_PARAGRAPH}
+                  </p>
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(SPONSOR_KIT_VOUCHER_PARAGRAPH)
+                        setVoucherCopied(true)
+                        setTimeout(() => setVoucherCopied(false), 2000)
+                      } catch {
+                        // noop
+                      }
+                    }}
+                    className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-calm-100 text-calm-800 font-medium border border-calm-200/70 hover:bg-calm-200/50 transition-colors"
+                  >
+                    <Copy className="w-4 h-4" />
+                    {voucherCopied ? 'Copied!' : 'Copy message'}
+                  </motion.button>
+                </div>
+              )}
+            </>
           )}
 
           {!isCallMode && (
