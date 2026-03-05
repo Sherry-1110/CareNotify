@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowLeft, CheckCircle2, Copy, Lightbulb, LoaderCircle, MessageCircle, Phone, Shield, Sparkles } from 'lucide-react'
 import type { FormState } from '../App'
@@ -34,6 +34,7 @@ export default function Step5Completion({
 }: Step5CompletionProps) {
   const [copied, setCopied] = useState(false)
   const [generatedMessages, setGeneratedMessages] = useState<string[]>([])
+  const [editableMessages, setEditableMessages] = useState<string[]>([])
   const [selectedMessageIndex, setSelectedMessageIndex] = useState(0)
   const [isGenerating, setIsGenerating] = useState(false)
   const [generationError, setGenerationError] = useState('')
@@ -51,11 +52,7 @@ export default function Step5Completion({
   }
 
   const fallbackMessage = form.messageText.trim() || getDefaultMessage(form)
-  const displayMessages = useMemo(
-    () => generatedMessages.map((message) => appendVoucherParagraphIfNeeded(message)),
-    [generatedMessages, shouldAppendVoucherParagraph]
-  )
-  const messageToShare = displayMessages[selectedMessageIndex] || fallbackMessage
+  const messageToShare = editableMessages[selectedMessageIndex] || fallbackMessage
 
   const buildVariantContext = (baseForm: FormState, styleInstruction: string, slot: number): FormState => {
     const existingContext = baseForm.additionalMessage.trim()
@@ -145,6 +142,7 @@ export default function Step5Completion({
         // For text mode, generate three message options and guidance
         const result = await generateThreeMessages()
         setGeneratedMessages(result.messages)
+        setEditableMessages(result.messages.map((message) => appendVoucherParagraphIfNeeded(message)))
         setSelectedMessageIndex(0)
         
         // Update form with determined attachment style
@@ -154,6 +152,7 @@ export default function Step5Completion({
     } catch (error) {
       console.error('Generation error:', error)
       setGeneratedMessages([])
+      setEditableMessages([])
       const details = error instanceof Error ? error.message : 'Unknown error'
       setGenerationError(`Could not generate content. ${details}`)
       // Try to load guidance with fallback message for text mode
@@ -249,25 +248,44 @@ export default function Step5Completion({
                 </div>
               ) : generatedMessages.length > 0 ? (
                 <div className="space-y-3">
-                  {displayMessages.map((message, index) => {
+                  {editableMessages.map((message, index) => {
                     const isSelected = selectedMessageIndex === index
+                    const preview = message.length > 260 ? `${message.slice(0, 260)}…` : message
                     return (
-                      <button
-                        key={`${index}-${message.slice(0, 16)}`}
-                        type="button"
-                        onClick={() => setSelectedMessageIndex(index)}
+                      <div
+                        key={`option-${index}`}
                         className={`w-full rounded-xl border p-3 text-left transition-all ${
                           isSelected
                             ? 'border-calm-400 bg-calm-50/80'
-                            : 'border-slate-200 bg-white/70 hover:bg-white'
+                            : 'border-slate-200 bg-white/70'
                         }`}
                       >
                         <div className="mb-1 flex items-center justify-between gap-2">
                           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Option {index + 1}</p>
                           {isSelected && <CheckCircle2 className="w-4 h-4 text-calm-600" />}
                         </div>
-                        <p className="text-sm text-slate-700 whitespace-pre-wrap">{message}</p>
-                      </button>
+                        {isSelected ? (
+                          <textarea
+                            value={message}
+                            onChange={(event) =>
+                              setEditableMessages((prev) =>
+                                prev.map((draft, draftIndex) =>
+                                  draftIndex === index ? event.target.value : draft
+                                )
+                              )
+                            }
+                            className="w-full min-h-[180px] rounded-lg border border-calm-300/70 bg-white/90 px-3 py-2 text-sm text-slate-700 whitespace-pre-wrap resize-y focus:border-calm-500 focus:ring-2 focus:ring-calm-300/70 outline-none transition-all"
+                          />
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setSelectedMessageIndex(index)}
+                            className="w-full text-left"
+                          >
+                            <p className="text-sm text-slate-700 whitespace-pre-wrap">{preview}</p>
+                          </button>
+                        )}
+                      </div>
                     )
                   })}
                 </div>
