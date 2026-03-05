@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, CheckCircle2, Copy, Lightbulb, LoaderCircle, MessageCircle, Phone, Shield, Sparkles } from 'lucide-react'
 import type { FormState } from '../App'
-import { generateMessageAndStyleFromForm, generateGuidanceFromForm, generateCoachingInsightFromForm, getDefaultMessage, type AttachmentGuidance, type CoachingInsight } from '../lib/messageGenerator'
+import { generateMessageAndStyleFromForm, generateGuidanceFromForm, generateCoachingInsightFromForm, generateCallScriptFromForm, getDefaultMessage, type AttachmentGuidance, type CoachingInsight } from '../lib/messageGenerator'
 
 const FALLBACK_GUIDANCE: AttachmentGuidance = {
   attachmentStyle: 'secure',
@@ -47,7 +47,17 @@ export default function Step5Completion({
   )
   const [callFeelingInput, setCallFeelingInput] = useState(form.callConversationFeeling || '')
   const [callFearInput, setCallFearInput] = useState(form.callReactionFears || '')
+  const [recommendedScript, setRecommendedScript] = useState<string | null>(null)
+  const scriptTextareaRef = useRef<HTMLTextAreaElement>(null)
   const shouldAppendVoucherParagraph = !isCallMode && form.sponsorKit
+
+  // Auto-resize script textarea so full content is visible without scrolling
+  useEffect(() => {
+    const el = scriptTextareaRef.current
+    if (!el || recommendedScript == null) return
+    el.style.height = 'auto'
+    el.style.height = `${Math.max(200, el.scrollHeight)}px`
+  }, [recommendedScript])
 
   const appendVoucherParagraphIfNeeded = (message: string): string => {
     const base = message.trim()
@@ -138,8 +148,12 @@ export default function Step5Completion({
     setGenerationError('')
     try {
       if (isCallMode) {
-        // For call mode, generate coaching insight instead of message
-        const insight = await generateCoachingInsightFromForm(sourceForm)
+        // For call mode, generate recommended script and coaching insights
+        const [script, insight] = await Promise.all([
+          generateCallScriptFromForm(sourceForm),
+          generateCoachingInsightFromForm(sourceForm),
+        ])
+        setRecommendedScript(script)
         console.log('Generated coaching insight:', insight)
         setCoachingInsight(insight)
         // Update form with determined attachment style
@@ -159,6 +173,7 @@ export default function Step5Completion({
       console.error('Generation error:', error)
       setGeneratedMessages([])
       setEditableMessages([])
+      setRecommendedScript(null)
       const details = error instanceof Error ? error.message : 'Unknown error'
       setGenerationError(`Could not generate content. ${details}`)
       // Try to load guidance with fallback message for text mode
@@ -217,6 +232,7 @@ export default function Step5Completion({
     updateForm(updates)
     setCallFlowStage('insights')
     setCoachingInsight(null)
+    setRecommendedScript(null)
     await runGeneration(formForGeneration)
   }
 
@@ -356,6 +372,41 @@ export default function Step5Completion({
 
           {isCallMode && callFlowStage === 'insights' && (
             <div className="space-y-4">
+              <div className="rounded-2xl bg-white/80 backdrop-blur p-5 border border-calm-200/70 shadow-soft">
+                <div className="mb-3">
+                  <div className="flex items-center gap-2 text-calm-700">
+                    <MessageCircle className="w-5 h-5" />
+                    <p className="text-sm font-semibold">Recommended Script</p>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Use this as a starting point for your call. You can adjust the words so they sound like you.
+                  </p>
+                </div>
+
+                {generationError && !recommendedScript && (
+                  <p className="text-xs text-amber-700 mb-2">{generationError}</p>
+                )}
+
+                {isGenerating && !recommendedScript ? (
+                  <div className="flex items-center justify-center gap-3 py-6">
+                    <LoaderCircle className="w-5 h-5 animate-spin text-calm-600" />
+                    <p className="text-sm text-slate-600">Generating your call script...</p>
+                  </div>
+                ) : recommendedScript ? (
+                  <textarea
+                    ref={scriptTextareaRef}
+                    value={recommendedScript}
+                    onChange={(event) => setRecommendedScript(event.target.value)}
+                    rows={8}
+                    className="w-full min-h-[200px] rounded-xl border border-calm-300/70 bg-white/90 px-3 py-2 text-sm text-slate-700 whitespace-pre-wrap resize-none overflow-hidden focus:border-calm-500 focus:ring-2 focus:ring-calm-300/70 outline-none transition-all"
+                  />
+                ) : (
+                  <p className="text-sm text-slate-600">
+                    Unable to generate a script right now. Please try again in a moment.
+                  </p>
+                )}
+              </div>
+
               <div className="rounded-2xl bg-gradient-to-br from-calm-50/80 to-white/95 p-6 border border-calm-200/70 shadow-soft">
                 <div className="mb-4">
                   <div className="flex items-center gap-2 text-calm-700">
@@ -363,6 +414,13 @@ export default function Step5Completion({
                     <p className="text-sm font-semibold">Coaching Insights</p>
                   </div>
                 </div>
+
+                {recommendedScript && (
+                  <div className="mb-5 rounded-xl border border-calm-200 bg-white/80 p-4 min-h-0">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Your full script</p>
+                    <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed break-words">{recommendedScript}</p>
+                  </div>
+                )}
                 
                 {generationError && <p className="text-xs text-amber-700 mb-3">{generationError}</p>}
                 

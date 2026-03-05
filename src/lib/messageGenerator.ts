@@ -389,6 +389,44 @@ function parseCoachingInsightResponse(raw: string): CoachingInsight | null {
 
   return null
 }
+const CALL_SCRIPT_SYSTEM_PROMPT = `System Role: You are an empathetic, emotionally intelligent communication coach for CareNotify. Your task is to translate a user’s raw inputs about an STI diagnosis into a short phone call script that helps them communicate the news clearly, calmly, and responsibly. The script should help the user stay grounded during a difficult conversation while encouraging the recipient to get tested. 
+
+Core Objective: Generate a simple spoken script that communicates the STI diagnosis clearly, encourages the recipient to get tested, maintains a calm and blame-free tone, and helps the user stay composed during a live conversation. The script should feel natural to say out loud and not sound like a prepared speech. 
+
+Input Variables: 
+- Recipient Name: {{recipient_name}} 
+- Relationship: {{relationship_type}} 
+- STI: {{sti_name}} 
+- Partner Attachment Style: {{attachment_style}} (Secure, Anxious, Avoidant) 
+- User Context: {{additional_message_content}} 
+- Optional Emotional Inputs: 
+- User Emotional State: {{user_feelings_about_conversation}} 
+- Feared Reactions: {{anticipated_reactions}} 
+
+Output Format: Generate a simple conversational structure with four parts: Opening, The News, Call to Action, and Closing/Space for Response. Each section should be 1–2 sentences maximum. The total script should be no more than 6–8 sentences and must sound natural when spoken. 
+
+The “CareNotify Voice” (Design Language): 
+- Normalize, Don’t Stigmatize — Treat the STI as a health situation to manage rather than a moral failure. Use phrases like “taking care of my health,” “handling this,” or “wanted to be responsible.” Avoid language implying blame. 
+- Connection over Transaction — Even for ex-partners, acknowledge the human connection. Use natural phrases such as “I wanted to tell you directly” or “I thought it was important you hear this from me.” 
+- Clear Call to Action — The recipient must clearly understand they should get tested. Use calm language such as “It would be a good idea for you to get tested too.” 
+
+Tailoring Strategy (Psychological Nuance): 
+- If Secure — Be open and collaborative, such as “I wanted to tell you directly so we can both take care of this.” 
+- If Anxious — Reduce panic and uncertainty by emphasizing that it is manageable and that the user is already handling it. For example, “It’s something that’s very treatable and I’m taking care of it.” 
+- If Avoidant — Keep the message short and factual without demanding emotional processing, such as “I just wanted to let you know so you can get tested if needed.” 
+
+Emotional Support Integration: 
+- If the user provides emotional context, adapt the script accordingly. 
+- If the user feels nervous or scared, include a grounding opening such as “I wanted to call because I think it’s better to say this directly.” 
+- If they fear anger or blame, frame the call as responsible care rather than confession, for example “I’m sharing this because I think it’s important we both take care of our health.” 
+
+Critical Constraints: 
+- Do not include apologies or phrases such as “sorry,” “apologize,” or “regret.” Notification is an act of responsibility, not wrongdoing. 
+- Do not provide medical advice or suggest specific treatments. Only recommend that the recipient get tested. 
+- Ensure the script sounds natural in conversation, avoiding robotic phrasing, overly formal language, or long sentences.
+
+Output only the final phone script following the structure above.`
+
 // First determine attachment style from context
 async function determineAttachmentStyleViaFrontendOpenAI(
   form: FormState,
@@ -479,6 +517,102 @@ async function determineAttachmentStyleViaFrontendOpenAI(
   }
   
   return 'secure'
+}
+async function generateCallScriptViaFrontendOpenAI(
+  form: FormState,
+  contextFiles: ContextFilePayload[],
+  apiKey: string
+): Promise<string> {
+  const partnerName = normalize(form.partnerName) || 'there'
+  const relationship = normalize(form.partnerRelationship) || 'partner'
+  const diagnosis = getTestLabel(form.testResults)
+  const attachmentStyle = normalizeAttachmentStyle(form.attachmentStyle) || 'secure'
+  const additionalMessage = normalize(form.additionalMessage)
+  const callConversationFeeling = normalize(form.callConversationFeeling)
+  const callReactionFears = normalize(form.callReactionFears)
+
+  const promptParts = [
+    `Recipient Name: ${partnerName}`,
+    `Relationship: ${relationship}`,
+    `STI: ${diagnosis}`,
+    `Partner Attachment Style: ${attachmentStyle}`,
+  ]
+
+  if (additionalMessage) {
+    promptParts.push(`User Context: ${additionalMessage}`)
+  }
+  if (callConversationFeeling) {
+    promptParts.push(`User Emotional State: ${callConversationFeeling}`)
+  }
+  if (callReactionFears) {
+    promptParts.push(`Feared Reactions: ${callReactionFears}`)
+  }
+
+  const userContent: Array<{ type: 'input_text' | 'input_image'; text?: string; image_url?: string }> = [
+    {
+      type: 'input_text',
+      text: promptParts.join('\n'),
+    },
+  ]
+
+  contextFiles.forEach((file, index) => {
+    userContent.push({
+      type: 'input_text',
+      text: `Context image ${index + 1}: ${file.name}`,
+    })
+    userContent.push({
+      type: 'input_image',
+      image_url: file.dataUrl,
+    })
+  })
+
+  const response = await fetch('https://api.openai.com/v1/responses', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: normalize(import.meta.env.VITE_OPENAI_MODEL) || normalize(import.meta.env.OPENAI_MODEL) || 'gpt-4.1-mini',
+      input: [
+        {
+          role: 'system',
+          content: [
+            {
+              type: 'input_text',
+              text: CALL_SCRIPT_SYSTEM_PROMPT,
+            },
+          ],
+        },
+        {
+          role: 'user',
+          content: userContent,
+        },
+      ],
+      temperature: 0.6,
+      max_output_tokens: 260,
+    }),
+  })
+
+  if (!response.ok) {
+    const details = await response.text()
+    throw new Error(`OpenAI call script request failed (${response.status}): ${details || 'no details'}`)
+  }
+
+  const data = (await response.json()) as OpenAiResponse
+  const responseText = normalize(data.output_text)
+  const structuredText = normalize(
+    data.output
+      ?.flatMap((item) => item.content ?? [])
+      .find((contentItem) => contentItem.type === 'output_text' && normalize(contentItem.text))?.text
+  )
+
+  const script = responseText || structuredText
+  if (!script) {
+    throw new Error('Empty OpenAI call script response.')
+  }
+
+  return script
 }
 async function generateGuidanceViaFrontendOpenAI(
   form: FormState,
@@ -645,6 +779,48 @@ export async function generateGuidanceFromForm(form: FormState, draftedMessage: 
     tip: normalize(data.tip) || "Keep the message clear, non-blaming, and focused on shared health.",
     positiveNote: normalize(data.positiveNote) || "You're taking a positive step. Being open about sexual health builds trust.",
   }
+}
+
+export async function generateCallScriptFromForm(form: FormState): Promise<string> {
+  const contextFiles = await buildContextFiles(form.lastInteractionFiles)
+  const frontendApiKey = getOpenAIKey()
+  const selectedAttachmentStyle = normalizeAttachmentStyle(form.attachmentStyle)
+
+  if (frontendApiKey) {
+    const attachmentStyle =
+      selectedAttachmentStyle ||
+      (await determineAttachmentStyleViaFrontendOpenAI(form, contextFiles, frontendApiKey))
+
+    const formWithStyle: FormState = { ...form, attachmentStyle: attachmentStyle as FormState['attachmentStyle'] }
+    return generateCallScriptViaFrontendOpenAI(formWithStyle, contextFiles, frontendApiKey)
+  }
+
+  const response = await fetch('/api/generate-call-script', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      partnerName: form.partnerName,
+      partnerRelationship: form.partnerRelationship,
+      additionalMessage: form.additionalMessage,
+      callConversationFeeling: form.callConversationFeeling,
+      callReactionFears: form.callReactionFears,
+      attachmentStyle: normalizeAttachmentStyle(form.attachmentStyle),
+      testResults: form.testResults,
+      contextFiles,
+    }),
+  })
+
+  if (!response.ok) {
+    const details = await response.text()
+    throw new Error(`Failed to generate call script (${response.status}): ${details || 'no details'}`)
+  }
+
+  const data = (await response.json()) as { script?: string }
+  if (!data.script?.trim()) {
+    throw new Error('Model returned an empty call script.')
+  }
+
+  return data.script.trim()
 }
 
 async function generateCoachingInsightViaFrontendOpenAI(
