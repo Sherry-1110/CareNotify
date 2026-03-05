@@ -476,7 +476,7 @@ export default function Step2MessageEditor({
               className="space-y-6"
             >
               <p className="text-sm text-slate-600 text-left px-1">
-                Offering a testing kit shifts the conversation from accusation to a gift of care.
+                If you'd like, you can sponsor a testing kit to simplify the process for them.
               </p>
 
               <motion.div
