@@ -76,9 +76,14 @@ export default function Step2MessageEditor({
   onNext,
   onBack,
 }: Step2MessageEditorProps) {
-  const [popupStep, setPopupStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(initialPage)
+  // Define the logical flow order: Disease → Kit Sponsorship → Partner Info → Attachment → Additional Message → Communication
+  const PAGE_FLOW: (1 | 2 | 3 | 4 | 5 | 6)[] = [1, 2, 3, 4, 5, 6]
+  
+  const [flowIndex, setFlowIndex] = useState(PAGE_FLOW.indexOf(initialPage))
   const [hasInteractedWithStiSelection, setHasInteractedWithStiSelection] = useState(false)
   const [showHelpMeDecideModal, setShowHelpMeDecideModal] = useState(false)
+
+  const popupStep = PAGE_FLOW[flowIndex]
 
   const canContinue = popupStep === 1
     ? form.testResults.length > 0
@@ -94,11 +99,19 @@ export default function Step2MessageEditor({
 
   const handleNext = () => {
     if (!canContinue) return
-    if (popupStep < 6) {
-      setPopupStep((prev) => (prev + 1) as 1 | 2 | 3 | 4 | 5 | 6)
+    if (flowIndex < PAGE_FLOW.length - 1) {
+      setFlowIndex((prev) => prev + 1)
       return
     }
     onNext()
+  }
+
+  const handleBack = () => {
+    if (flowIndex > 0) {
+      setFlowIndex((prev) => prev - 1)
+    } else {
+      onBack()
+    }
   }
 
   const toggleDisease = (diseaseValue: string) => {
@@ -130,15 +143,15 @@ export default function Step2MessageEditor({
       >
         <div className="page-header">
           <h2 className="page-header-title">Message & partner info</h2>
-          <p className="page-header-desc">Page {popupStep} of 6</p>
+          <p className="page-header-desc">Page {flowIndex + 1} of 6</p>
         </div>
 
         <div className="grid grid-cols-6 gap-2">
-          {[1, 2, 3, 4, 5, 6].map((dot) => (
+          {[0, 1, 2, 3, 4, 5].map((dot) => (
             <div
               key={dot}
               className={`h-2 rounded-full transition-all ${
-                dot <= popupStep ? 'bg-calm-500' : 'bg-slate-200'
+                dot <= flowIndex ? 'bg-calm-500' : 'bg-slate-200'
               }`}
             />
           ))}
@@ -539,25 +552,14 @@ export default function Step2MessageEditor({
 
         <div className="flex items-center gap-3 w-full">
           <div className="min-w-0 flex-1 flex">
-            {popupStep === 1 ? (
-              <motion.button
-                type="button"
-                whileTap={{ scale: 0.98 }}
-                onClick={onBack}
-                className="w-full flex items-center justify-center py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all"
-              >
-                <ArrowLeft className="w-5 h-5 shrink-0" />
-              </motion.button>
-            ) : (
-              <motion.button
-                type="button"
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setPopupStep((prev) => (prev - 1) as 1 | 2 | 3 | 4 | 5 | 6)}
-                className="w-full flex items-center justify-center py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all"
-              >
-                <ArrowLeft className="w-5 h-5 shrink-0" />
-              </motion.button>
-            )}
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.98 }}
+              onClick={handleBack}
+              className="w-full flex items-center justify-center py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all"
+            >
+              <ArrowLeft className="w-5 h-5 shrink-0" />
+            </motion.button>
           </div>
           <motion.button
             whileHover={{ scale: 1.01 }}
