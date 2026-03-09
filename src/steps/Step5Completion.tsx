@@ -11,7 +11,10 @@ const FALLBACK_GUIDANCE: AttachmentGuidance = {
 } 
 
 const SPONSOR_KIT_VOUCHER_PARAGRAPH =
-  "I've included a free testing voucher through DX Your Way. To use it safely: download the official DX Your Way app from your app store and enter code [REFERENCE_CODE]. This is legitimate - you can verify by searching 'DX Your Way' in your app store first. No one will ask for passwords or personal info via text."
+  "I’ve included a free testing voucher through DX Your Way. To use it, download the official DX Your Way app from your app store and enter code [REFERENCE_CODE]. You can confirm it’s the right app by searching “DX Your Way” in your app store. DX Your Way will not ask for passwords or personal information by text."
+
+const CALL_MODE_VOUCHER_MESSAGE =
+  "Based on our conversation, I'm sharing a free testing voucher through DX Your Way. To use it, download the official DX Your Way app from your app store and enter code [REFERENCE_CODE]. You can verify the app by searching \"DX Your Way\" in your app store. DX Your Way will never ask for passwords or personal information by text."
 
 /** Short line for the call script when user offers a kit; full message goes in the copyable box below. */
 const SPONSOR_KIT_SCRIPT_LINE =
@@ -461,7 +464,9 @@ export default function Step5Completion({
                           
                           <div>
                             <p className="font-medium text-slate-700 text-xs uppercase tracking-wide mb-1">Your Best Reply</p>
-                            <p className="text-slate-600 bg-calm-50/50 p-2 rounded border-l-2 border-calm-400">"{scenario.yourBestReply}"</p>
+                            <p className="text-slate-600 bg-calm-50/50 p-2 rounded border-l-2 border-calm-400">
+                              "{form.sponsorKit ? CALL_MODE_VOUCHER_MESSAGE : scenario.yourBestReply}"
+                            </p>
                           </div>
                         </div>
                       </motion.div>
@@ -531,7 +536,7 @@ export default function Step5Completion({
                 <div className="rounded-2xl border border-calm-200/70 bg-white/80 p-4 shadow-soft">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Message to send (with voucher code)</p>
                   <p className="text-sm text-slate-700 leading-relaxed mb-3 whitespace-pre-wrap">
-                    {SPONSOR_KIT_VOUCHER_PARAGRAPH}
+                    {CALL_MODE_VOUCHER_MESSAGE}
                   </p>
                   <motion.button
                     type="button"
@@ -539,7 +544,7 @@ export default function Step5Completion({
                     whileTap={{ scale: 0.98 }}
                     onClick={async () => {
                       try {
-                        await navigator.clipboard.writeText(SPONSOR_KIT_VOUCHER_PARAGRAPH)
+                        await navigator.clipboard.writeText(CALL_MODE_VOUCHER_MESSAGE)
                         setVoucherCopied(true)
                         setTimeout(() => setVoucherCopied(false), 2000)
                       } catch {
