@@ -55,8 +55,8 @@ const ATTACHMENT_STYLE_OPTIONS = [
   },
   {
     value: 'not_sure',
-    label: "I'm Not Sure",
-    description: "Not sure yet. We'll use your context to guide the message.",
+    label: 'Not Sure',
+    description: "Unsure is okay. We'll help tailor the message to your situation.",
   },
 ] as const
 
@@ -81,10 +81,12 @@ export default function Step2MessageEditor({
   const canContinue = popupStep === 1
     ? form.testResults.length > 0
     : popupStep === 2
-      ? Boolean(form.partnerName.trim() && form.partnerRelationship)
+      ? true
       : popupStep === 3
-        ? Boolean(form.attachmentStyle)
-        : true // Pages 4 and 5 are optional, always can continue
+        ? Boolean(form.partnerName.trim() && form.partnerRelationship)
+      : popupStep === 4
+          ? Boolean(form.attachmentStyle)
+          : true // Pages 2 and 5 are optional, always can continue
 
   const handleNext = () => {
     if (!canContinue) return
@@ -139,9 +141,9 @@ export default function Step2MessageEditor({
         </div>
 
         <AnimatePresence mode="wait">
-          {popupStep === 2 && (
+          {popupStep === 3 && (
             <motion.div
-              key="popup-2"
+              key="popup-3"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -290,9 +292,9 @@ export default function Step2MessageEditor({
             </motion.div>
           )}
 
-          {popupStep === 3 && (
+          {popupStep === 4 && (
             <motion.div
-              key="popup-3"
+              key="popup-4"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -330,9 +332,9 @@ export default function Step2MessageEditor({
             </motion.div>
           )}
 
-          {popupStep === 4 && (
+          {popupStep === 5 && (
             <motion.div
-              key="popup-4"
+              key="popup-5"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -355,9 +357,9 @@ export default function Step2MessageEditor({
             </motion.div>
           )}
 
-          {popupStep === 5 && (
+          {popupStep === 2 && (
             <motion.div
-              key="popup-5"
+              key="popup-2"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}

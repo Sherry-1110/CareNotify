@@ -85,7 +85,7 @@ function App() {
   }
 
   const handleBackToSponsorKit = () => {
-    setStep2InitialPage(5)
+    setStep2InitialPage(2)
     goToStep(2)
   }
 
