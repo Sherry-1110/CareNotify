@@ -391,7 +391,7 @@ export default function Step5Completion({
                     <p className="text-sm font-semibold">Recommended Script</p>
                   </div>
                   <p className="mt-1 text-xs text-slate-500">
-                    Use this as a starting point for your call. You can adjust the words so they sound like you.
+                    Use this as a starting point for your call. Edit it so it feels comfortable to say out loud.
                   </p>
                 </div>
 
