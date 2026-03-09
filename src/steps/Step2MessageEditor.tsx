@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Check, FlaskConical, Gift, Users } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, FlaskConical, Gift, Users, MessageCircle, Phone, Sparkles } from 'lucide-react'
 import type { FormState } from '../App'
+import HelpMeDecideModal from './HelpMeDecideModal'
 
 const RELATIONSHIP_OPTIONS = [
   {
@@ -63,7 +64,7 @@ const ATTACHMENT_STYLE_OPTIONS = [
 type Step2MessageEditorProps = {
   form: FormState
   updateForm: (u: Partial<FormState>) => void
-  initialPage?: 1 | 2 | 3 | 4 | 5
+  initialPage?: 1 | 2 | 3 | 4 | 5 | 6
   onNext: () => void
   onBack: () => void
 }
@@ -75,8 +76,9 @@ export default function Step2MessageEditor({
   onNext,
   onBack,
 }: Step2MessageEditorProps) {
-  const [popupStep, setPopupStep] = useState<1 | 2 | 3 | 4 | 5>(initialPage)
+  const [popupStep, setPopupStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(initialPage)
   const [hasInteractedWithStiSelection, setHasInteractedWithStiSelection] = useState(false)
+  const [showHelpMeDecideModal, setShowHelpMeDecideModal] = useState(false)
 
   const canContinue = popupStep === 1
     ? form.testResults.length > 0
@@ -86,12 +88,14 @@ export default function Step2MessageEditor({
         ? Boolean(form.partnerName.trim() && form.partnerRelationship)
       : popupStep === 4
           ? Boolean(form.attachmentStyle)
-          : true // Pages 2 and 5 are optional, always can continue
+          : popupStep === 6
+            ? Boolean(form.communicationPreference)
+            : true // Pages 2 and 5 are optional, always can continue
 
   const handleNext = () => {
     if (!canContinue) return
-    if (popupStep < 5) {
-      setPopupStep((prev) => (prev + 1) as 1 | 2 | 3 | 4 | 5)
+    if (popupStep < 6) {
+      setPopupStep((prev) => (prev + 1) as 1 | 2 | 3 | 4 | 5 | 6)
       return
     }
     onNext()
@@ -126,11 +130,11 @@ export default function Step2MessageEditor({
       >
         <div className="page-header">
           <h2 className="page-header-title">Message & partner info</h2>
-          <p className="page-header-desc">Page {popupStep} of 5</p>
+          <p className="page-header-desc">Page {popupStep} of 6</p>
         </div>
 
-        <div className="grid grid-cols-5 gap-2">
-          {[1, 2, 3, 4, 5].map((dot) => (
+        <div className="grid grid-cols-6 gap-2">
+          {[1, 2, 3, 4, 5, 6].map((dot) => (
             <div
               key={dot}
               className={`h-2 rounded-full transition-all ${
@@ -407,6 +411,130 @@ export default function Step2MessageEditor({
               </motion.div>
             </motion.div>
           )}
+
+          {popupStep === 6 && (
+            <motion.div
+              key="popup-6"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-6"
+            >
+              <div>
+                <h3 className="section-title">Select your communication modality:</h3>
+                <p className="text-sm text-slate-600 mb-4">
+                  Choose how you'd like to reach out to your partner
+                </p>
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={() => updateForm({ communicationPreference: 'text' })}
+                    className={`w-full text-left rounded-2xl border p-5 transition-all ${
+                      form.communicationPreference === 'text'
+                        ? 'border-calm-400 bg-calm-50/90 shadow-soft'
+                        : 'border-white/60 bg-white/50 hover:bg-white/70'
+                    }`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+                        form.communicationPreference === 'text'
+                          ? 'bg-gradient-primary text-white border border-white/30'
+                          : 'bg-white/60 backdrop-blur text-calm-600 border border-white/50'
+                      }`}>
+                        <MessageCircle className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <p className="font-semibold text-slate-800">Text</p>
+                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                            form.communicationPreference === 'text'
+                              ? 'border-calm-500 bg-gradient-primary'
+                              : 'border-slate-300 bg-white/40'
+                          }`}>
+                            {form.communicationPreference === 'text' && <Check className="w-4 h-4 text-white" />}
+                          </div>
+                        </div>
+                        <p className="text-sm text-slate-600 mt-2">
+                          Send a thoughtfully crafted text message
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => updateForm({ communicationPreference: 'call' })}
+                    className={`w-full text-left rounded-2xl border p-5 transition-all ${
+                      form.communicationPreference === 'call'
+                        ? 'border-calm-400 bg-calm-50/90 shadow-soft'
+                        : 'border-white/60 bg-white/50 hover:bg-white/70'
+                    }`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+                        form.communicationPreference === 'call'
+                          ? 'bg-gradient-primary text-white border border-white/30'
+                          : 'bg-white/60 backdrop-blur text-calm-600 border border-white/50'
+                      }`}>
+                        <Phone className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <p className="font-semibold text-slate-800">Call</p>
+                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                            form.communicationPreference === 'call'
+                              ? 'border-calm-500 bg-gradient-primary'
+                              : 'border-slate-300 bg-white/40'
+                          }`}>
+                            {form.communicationPreference === 'call' && <Check className="w-4 h-4 text-white" />}
+                          </div>
+                        </div>
+                        <p className="text-sm text-slate-600 mt-2">
+                          Have a conversation with a personalized script
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowHelpMeDecideModal(true)}
+                    className={`w-full text-left rounded-2xl border p-5 transition-all ${
+                      form.communicationPreference === 'help_decide'
+                        ? 'border-calm-400 bg-calm-50/90 shadow-soft'
+                        : 'border-white/60 bg-white/50 hover:bg-white/70'
+                    }`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+                        form.communicationPreference === 'help_decide'
+                          ? 'bg-gradient-primary text-white border border-white/30'
+                          : 'bg-white/60 backdrop-blur text-calm-600 border border-white/50'
+                      }`}>
+                        <Sparkles className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <p className="font-semibold text-slate-800">Help me decide</p>
+                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                            form.communicationPreference === 'help_decide'
+                              ? 'border-calm-500 bg-gradient-primary'
+                              : 'border-slate-300 bg-white/40'
+                          }`}>
+                            {form.communicationPreference === 'help_decide' && <Check className="w-4 h-4 text-white" />}
+                          </div>
+                        </div>
+                        <p className="text-sm text-slate-600 mt-2">
+                          Get personalized recommendations based on your situation
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
 
         <div className="flex items-center gap-3 w-full">
@@ -424,7 +552,7 @@ export default function Step2MessageEditor({
               <motion.button
                 type="button"
                 whileTap={{ scale: 0.98 }}
-                onClick={() => setPopupStep((prev) => (prev - 1) as 1 | 2 | 3 | 4 | 5)}
+                onClick={() => setPopupStep((prev) => (prev - 1) as 1 | 2 | 3 | 4 | 5 | 6)}
                 className="w-full flex items-center justify-center py-4 rounded-2xl glass-card text-calm-700 font-medium hover:bg-white/80 transition-all"
               >
                 <ArrowLeft className="w-5 h-5 shrink-0" />
@@ -442,6 +570,20 @@ export default function Step2MessageEditor({
           </motion.button>
         </div>
       </motion.div>
+
+      {/* Help Me Decide Modal */}
+      {showHelpMeDecideModal && (
+        <HelpMeDecideModal
+          form={form}
+          onClose={() => setShowHelpMeDecideModal(false)}
+          onDecision={(preference) => {
+            updateForm({ communicationPreference: preference })
+            setShowHelpMeDecideModal(false)
+            // Automatically proceed to next step after decision
+            onNext()
+          }}
+        />
+      )}
     </div>
   )
 }

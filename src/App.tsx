@@ -12,7 +12,7 @@ export type FormState = {
   userId: string | null
   partnerName: string
   partnerRelationship: '' | 'current_partner' | 'previous_partner' | 'future_partner'
-  communicationPreference: '' | 'text' | 'call'
+  communicationPreference: '' | 'text' | 'call' | 'help_decide'
   testResults: Array<{ value: string; status: 'positive' | 'negative' | 'suspected' }>
   attachmentStyle: '' | 'secure' | 'anxious' | 'avoidant' | 'disorganized' | 'not_sure'
   lastInteractionFiles: File[]
@@ -29,7 +29,7 @@ const initialFormState: FormState = {
   userId: null,
   partnerName: '',
   partnerRelationship: '',
-  communicationPreference: 'text',
+  communicationPreference: '',
   testResults: [],
   attachmentStyle: '',
   lastInteractionFiles: [],
@@ -43,7 +43,7 @@ const initialFormState: FormState = {
 function App() {
   const [form, setForm] = useState<FormState>(initialFormState)
   const [firebaseReady, setFirebaseReady] = useState(false)
-  const [step2InitialPage, setStep2InitialPage] = useState<1 | 2 | 3 | 4 | 5>(1)
+  const [step2InitialPage, setStep2InitialPage] = useState<1 | 2 | 3 | 4 | 5 | 6>(1)
 
   useEffect(() => {
     const fb = initFirebase()
@@ -96,7 +96,7 @@ function App() {
       step: 2,
       partnerName: '',
       partnerRelationship: '',
-      communicationPreference: 'text',
+      communicationPreference: '',
       testResults: [],
       attachmentStyle: '',
       lastInteractionFiles: [],
