@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Check, FlaskConical, Gift, MessageSquare, Phone, Upload, Users, X } from 'lucide-react'
-import type { ChangeEvent, DragEvent } from 'react'
+import { ArrowLeft, ArrowRight, Check, FlaskConical, Gift, Users } from 'lucide-react'
 import type { FormState } from '../App'
 
 const RELATIONSHIP_OPTIONS = [
@@ -78,12 +77,11 @@ export default function Step2MessageEditor({
 }: Step2MessageEditorProps) {
   const [popupStep, setPopupStep] = useState<1 | 2 | 3 | 4 | 5>(initialPage)
   const [hasInteractedWithStiSelection, setHasInteractedWithStiSelection] = useState(false)
-  const [isDraggingFiles, setIsDraggingFiles] = useState(false)
 
   const canContinue = popupStep === 1
-    ? Boolean(form.partnerName.trim() && form.partnerRelationship && form.communicationPreference)
+    ? form.testResults.length > 0
     : popupStep === 2
-      ? form.testResults.length > 0
+      ? Boolean(form.partnerName.trim() && form.partnerRelationship)
       : popupStep === 3
         ? Boolean(form.attachmentStyle)
         : true // Pages 4 and 5 are optional, always can continue
@@ -97,34 +95,6 @@ export default function Step2MessageEditor({
     onNext()
   }
 
-  const processIncomingFiles = (incomingFiles: File[]) => {
-    if (!incomingFiles.length) return
-    if (form.lastInteractionFiles.length >= 2) return
-
-    const merged = [...form.lastInteractionFiles, ...incomingFiles].slice(0, 2)
-    updateForm({ lastInteractionFiles: merged })
-  }
-
-  const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
-    const incomingFiles = Array.from(event.target.files ?? [])
-    processIncomingFiles(incomingFiles)
-    event.target.value = ''
-  }
-
-  const handleDropFiles = (event: DragEvent<HTMLLabelElement>) => {
-    event.preventDefault()
-    event.stopPropagation()
-    setIsDraggingFiles(false)
-    const files = Array.from(event.dataTransfer?.files ?? []).filter((file) => file.type.startsWith('image/'))
-    processIncomingFiles(files)
-  }
-
-  const removeFile = (indexToRemove: number) => {
-    updateForm({
-      lastInteractionFiles: form.lastInteractionFiles.filter((_, index) => index !== indexToRemove),
-    })
-  }
-
   const toggleDisease = (diseaseValue: string) => {
     setHasInteractedWithStiSelection(true)
     const isSelected = form.testResults.some((d) => d.value === diseaseValue)
@@ -134,12 +104,12 @@ export default function Step2MessageEditor({
       })
     } else {
       updateForm({
-        testResults: [...form.testResults, { value: diseaseValue, status: 'confirmed' }],
+        testResults: [...form.testResults, { value: diseaseValue, status: 'positive' }],
       })
     }
   }
 
-  const setDiseaseStatus = (diseaseValue: string, status: 'confirmed' | 'suspected') => {
+  const setDiseaseStatus = (diseaseValue: string, status: 'positive' | 'negative' | 'suspected') => {
     updateForm({
       testResults: form.testResults.map((d) => (d.value === diseaseValue ? { ...d, status } : d)),
     })
@@ -169,9 +139,9 @@ export default function Step2MessageEditor({
         </div>
 
         <AnimatePresence mode="wait">
-          {popupStep === 1 && (
+          {popupStep === 2 && (
             <motion.div
-              key="popup-1"
+              key="popup-2"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -218,42 +188,12 @@ export default function Step2MessageEditor({
                 </div>
               </div>
 
-              <div>
-                <h3 className="section-title">How would you like to reach them?</h3>
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => updateForm({ communicationPreference: 'text' })}
-                    className={`flex-1 flex items-center justify-center gap-2 rounded-2xl border p-4 transition-all ${
-                      form.communicationPreference === 'text'
-                        ? 'border-calm-400 bg-calm-50/90 shadow-soft'
-                        : 'border-white/60 bg-white/50 hover:bg-white/70'
-                    }`}
-                  >
-                    <MessageSquare className="w-5 h-5 text-calm-600 shrink-0" />
-                    <span className="font-medium text-slate-800">Text</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => updateForm({ communicationPreference: 'call' })}
-                    className={`flex-1 flex items-center justify-center gap-2 rounded-2xl border p-4 transition-all ${
-                      form.communicationPreference === 'call'
-                        ? 'border-calm-400 bg-calm-50/90 shadow-soft'
-                        : 'border-white/60 bg-white/50 hover:bg-white/70'
-                    }`}
-                  >
-                    <Phone className="w-5 h-5 text-calm-600 shrink-0" />
-                    <span className="font-medium text-slate-800">Call</span>
-                  </button>
-                </div>
-              </div>
-
             </motion.div>
           )}
 
-          {popupStep === 2 && (
+          {popupStep === 1 && (
             <motion.div
-              key="popup-2"
+              key="popup-1"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -269,7 +209,7 @@ export default function Step2MessageEditor({
                     {DISEASE_OPTIONS.map((option) => {
                       const selected = form.testResults.find((d) => d.value === option.value)
                       const isSelected = Boolean(selected)
-                      const status = selected?.status ?? 'confirmed'
+                      const status = selected?.status ?? 'positive'
                       return (
                         <button
                           key={option.value}
@@ -305,14 +245,25 @@ export default function Step2MessageEditor({
                               >
                                 <button
                                   type="button"
-                                  onClick={() => setDiseaseStatus(option.value, 'confirmed')}
+                                  onClick={() => setDiseaseStatus(option.value, 'positive')}
                                   className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                                    status === 'confirmed'
+                                    status === 'positive'
                                       ? 'bg-gradient-primary text-white shadow-soft'
                                       : 'text-slate-600 hover:bg-white/60'
                                   }`}
                                 >
-                                  Confirmed
+                                  Positive
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setDiseaseStatus(option.value, 'negative')}
+                                  className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                                    status === 'negative'
+                                      ? 'bg-gradient-primary text-white shadow-soft'
+                                      : 'text-slate-600 hover:bg-white/60'
+                                  }`}
+                                >
+                                  Negative
                                 </button>
                                 <button
                                   type="button"
@@ -349,69 +300,7 @@ export default function Step2MessageEditor({
               className="space-y-6"
             >
               <div>
-                <div className="section-title">
-                  <Upload className="w-5 h-5 text-calm-600 shrink-0" />
-                  <span>About your relationship</span>
-                </div>
-                <p className="text-sm text-slate-600 mb-3">
-                  Can you help provide some context of your last interaction with them?
-                </p>
-                <p className="text-sm text-slate-600 mb-3">Upload screenshots or photos (optional, max 2 files).</p>
-                <label
-                  className={`w-full rounded-2xl border border-dashed ${
-                    isDraggingFiles ? 'border-calm-500 bg-calm-50/80' : 'border-calm-300/80 bg-white/40 hover:bg-white/60'
-                  } transition-colors p-4 flex flex-col items-center justify-center gap-2 text-center cursor-pointer`}
-                  onDragOver={(event) => {
-                    event.preventDefault()
-                    event.stopPropagation()
-                    if (!isDraggingFiles) setIsDraggingFiles(true)
-                  }}
-                  onDragEnter={(event) => {
-                    event.preventDefault()
-                    event.stopPropagation()
-                    setIsDraggingFiles(true)
-                  }}
-                  onDragLeave={(event) => {
-                    event.preventDefault()
-                    event.stopPropagation()
-                    setIsDraggingFiles(false)
-                  }}
-                  onDrop={handleDropFiles}
-                >
-                  <Upload className="w-5 h-5 text-calm-600" />
-                  <span className="text-sm font-medium text-slate-700">Upload context files</span>
-                  <span className="text-xs text-slate-500">Up to 2 images</span>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleFileUpload}
-                    disabled={form.lastInteractionFiles.length >= 2}
-                  />
-                </label>
-                {form.lastInteractionFiles.length > 0 && (
-                  <div className="mt-3 space-y-2">
-                    {form.lastInteractionFiles.map((file, index) => (
-                      <div
-                        key={`${file.name}-${index}`}
-                        className="flex items-center justify-between rounded-xl bg-white/60 border border-white/50 px-3 py-2"
-                      >
-                        <p className="text-sm text-slate-700 truncate">{file.name}</p>
-                        <button
-                          type="button"
-                          onClick={() => removeFile(index)}
-                          className="p-1 rounded-lg hover:bg-white/70 text-slate-500 hover:text-slate-700"
-                          aria-label={`Remove ${file.name}`}
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="mt-6">
+                <div>
                   <h3 className="section-title">What is your partner's attachment style?</h3>
                   <p className="text-xs text-calm-600 mt-1 mb-3">
                     Attachment style reflects how someone emotionally connects and communicates in relationships.

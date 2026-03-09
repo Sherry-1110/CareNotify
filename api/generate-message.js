@@ -89,20 +89,25 @@ export default async function handler(req, res) {
   const relationshipLabel = RELATIONSHIP_LABELS[partnerRelationship] || 'partner'
   const communicationLabel = COMMUNICATION_LABELS[communicationPreference] || 'message'
   const selected = Array.isArray(testResults) ? testResults : []
-  const confirmed = []
+  const positive = []
   const suspected = []
+  const negative = []
   selected.forEach((item) => {
     const value = normalizeString(item?.value)
     if (!value) return
     const label = TEST_LABELS[value] || value
-    if (normalizeString(item?.status) === 'suspected') suspected.push(label)
-    else confirmed.push(label)
+    const status = normalizeString(item?.status)
+    if (status === 'suspected') suspected.push(label)
+    else if (status === 'negative') negative.push(label)
+    else if (status === 'positive' || status === 'confirmed') positive.push(label)
+    else positive.push(label)
   })
   const diagnosisLabel =
-    confirmed.length || suspected.length
+    positive.length || suspected.length
       ? [
-          confirmed.length ? `confirmed: ${confirmed.join(', ')}` : '',
+          positive.length ? `positive: ${positive.join(', ')}` : '',
           suspected.length ? `suspected: ${suspected.join(', ')}` : '',
+          negative.length ? `negative: ${negative.join(', ')}` : '',
         ]
           .filter(Boolean)
           .join(' | ')

@@ -202,7 +202,13 @@ export default async function handler(req, res) {
       .map((t) => {
         if (typeof t === 'string') return t.replace(/_/g, ' ')
         const v = normalize(t?.value)
-        const s = normalize(t?.status) === 'suspected' ? 'suspected' : 'confirmed'
+        const rawStatus = normalize(t?.status)
+        const s =
+          rawStatus === 'suspected'
+            ? 'suspected'
+            : rawStatus === 'negative'
+              ? 'negative'
+              : 'positive'
         return v ? `${v.replace(/_/g, ' ')} (${s})` : ''
       })
       .filter(Boolean)

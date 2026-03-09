@@ -16,15 +16,15 @@ const TEST_LABELS: Record<string, string> = {
 
 function getDefaultMessage(form: FormState): string {
   const name = form.partnerName || '*insert partner name*'
-  const confirmed = form.testResults
-    .filter((r) => (r?.status ?? 'confirmed') === 'confirmed')
+  const positive = form.testResults
+    .filter((r) => (r?.status ?? 'positive') === 'positive')
     .map((r) => TEST_LABELS[r.value] ?? r.value)
   const suspected = form.testResults
     .filter((r) => r?.status === 'suspected')
     .map((r) => TEST_LABELS[r.value] ?? r.value)
 
   const disclosureParts: string[] = []
-  if (confirmed.length > 0) disclosureParts.push(`I tested positive for ${confirmed.join(', ')}.`)
+  if (positive.length > 0) disclosureParts.push(`I tested positive for ${positive.join(', ')}.`)
   if (suspected.length > 0) disclosureParts.push(`There’s also a chance I may have ${suspected.join(', ')} (not confirmed yet).`)
   const disclosure = disclosureParts.length > 0 ? disclosureParts.join(' ') : 'I tested positive for an STI.'
   

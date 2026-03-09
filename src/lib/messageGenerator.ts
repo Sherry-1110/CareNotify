@@ -18,23 +18,30 @@ const TEST_LABELS: Record<string, string> = {
   mycoplasma_genitalium: 'Mycoplasma Genitalium',
 }
 
-type SelectedTest = { value: string; status: 'confirmed' | 'suspected' }
+type SelectedTest = { value: string; status: 'positive' | 'negative' | 'suspected' | 'confirmed' }
 
 function normalizeSelectedTests(testResults: unknown): SelectedTest[] {
   if (!Array.isArray(testResults)) return []
 
-  // Backward compat: string[] means confirmed
+  // Backward compat: string[] means positive
   if (testResults.every((t) => typeof t === 'string')) {
     return (testResults as string[])
       .filter((t) => t.length > 0)
-      .map((value) => ({ value, status: 'confirmed' }))
+      .map((value) => ({ value, status: 'positive' }))
   }
 
   return (testResults as Array<Partial<SelectedTest>>)
     .filter((t) => typeof t?.value === 'string' && t.value.length > 0)
     .map((t) => ({
       value: t.value as string,
-      status: t.status === 'suspected' ? 'suspected' : 'confirmed',
+      status:
+        t.status === 'suspected'
+          ? 'suspected'
+          : t.status === 'negative'
+            ? 'negative'
+            : t.status === 'confirmed'
+              ? 'positive'
+              : 'positive',
     }))
 }
 
@@ -49,27 +56,29 @@ function getTestLabel(testResults: unknown): string {
   return 'an STI'
 }
 
-function getDiagnosesStatusSummary(testResults: unknown): { confirmed: string[]; suspected: string[] } {
+function getDiagnosesStatusSummary(testResults: unknown): { positive: string[]; suspected: string[]; negative: string[] } {
   const selected = normalizeSelectedTests(testResults)
-  const confirmed: string[] = []
+  const positive: string[] = []
   const suspected: string[] = []
+  const negative: string[] = []
 
   selected.forEach(({ value, status }) => {
     const label = TEST_LABELS[value] ?? value
     if (status === 'suspected') suspected.push(label)
-    else confirmed.push(label)
+    else if (status === 'negative') negative.push(label)
+    else positive.push(label)
   })
 
-  return { confirmed, suspected }
+  return { positive, suspected, negative }
 }
 
 export function getDefaultMessage(form: FormState): string {
   const name = form.partnerName || '[Name]'
-  const { confirmed, suspected } = getDiagnosesStatusSummary(form.testResults)
+  const { positive, suspected } = getDiagnosesStatusSummary(form.testResults)
 
   const parts: string[] = []
-  if (confirmed.length > 0) {
-    parts.push(`I wanted to let you know I recently tested positive for ${confirmed.join(', ')}.`)
+  if (positive.length > 0) {
+    parts.push(`I wanted to let you know I recently tested positive for ${positive.join(', ')}.`)
   }
   if (suspected.length > 0) {
     const suspectedLabel = suspected.join(', ')
@@ -134,11 +143,11 @@ async function generateViaFrontendOpenAI(
 ): Promise<string> {
   const partnerName = normalize(form.partnerName) || 'there'
   const relationship = normalize(form.partnerRelationship) || 'partner'
-  const { confirmed, suspected } = getDiagnosesStatusSummary(form.testResults)
+  const { positive, suspected } = getDiagnosesStatusSummary(form.testResults)
   const diagnosis =
-    confirmed.length || suspected.length
+    positive.length || suspected.length
       ? [
-          confirmed.length ? `confirmed: ${confirmed.join(', ')}` : '',
+          positive.length ? `positive: ${positive.join(', ')}` : '',
           suspected.length ? `suspected: ${suspected.join(', ')}` : '',
         ]
           .filter(Boolean)
@@ -622,11 +631,11 @@ async function generateGuidanceViaFrontendOpenAI(
 ): Promise<AttachmentGuidance> {
   const partnerName = normalize(form.partnerName) || 'there'
   const relationship = normalize(form.partnerRelationship) || 'partner'
-  const { confirmed, suspected } = getDiagnosesStatusSummary(form.testResults)
+  const { positive, suspected } = getDiagnosesStatusSummary(form.testResults)
   const diagnosis =
-    confirmed.length || suspected.length
+    positive.length || suspected.length
       ? [
-          confirmed.length ? `confirmed: ${confirmed.join(', ')}` : '',
+          positive.length ? `positive: ${positive.join(', ')}` : '',
           suspected.length ? `suspected: ${suspected.join(', ')}` : '',
         ]
           .filter(Boolean)

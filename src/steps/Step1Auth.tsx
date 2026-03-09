@@ -80,13 +80,15 @@ export default function Step1Auth({ onGuestContinue, onSignInSuccess, firebaseRe
             className="w-[4.5rem] h-[4.5rem] object-cover rounded-2xl translate-y-1"
           />
         </div>
-        <h1 className="text-2xl font-semibold mb-2">
+        <h1 className="text-2xl font-semibold mb-0.5">
           <span className="text-[#2D6BA5]">Care</span>
           <span className="text-[#4FB39B]">Notify</span>
         </h1>
-        <p className="text-slate-600 text-base leading-relaxed mb-10">
-          We help you share health information in a supportive way by building a message you are comfortable to share.
-
+        <p className="text-slate-500 text-sm mb-1">
+          Support for sharing STI status with care
+        </p>
+        <p className="text-slate-600 text-base leading-relaxed my-8">
+          CareNotify helps you prepare what to say when you need to share STI status with someone. Choose a text or call option, and offer a testing kit to support next steps with care.
         </p>
 
         <div className="w-full space-y-4">
@@ -97,7 +99,7 @@ export default function Step1Auth({ onGuestContinue, onSignInSuccess, firebaseRe
             className="w-full flex items-center justify-center gap-3 py-4 px-5 rounded-2xl bg-gradient-primary text-white font-medium shadow-soft border border-white/20 hover:shadow-lg transition-shadow"
           >
             <LogIn className="w-5 h-5" />
-            Sign up / Login
+            Sign up / Log in
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.02 }}
@@ -111,7 +113,7 @@ export default function Step1Auth({ onGuestContinue, onSignInSuccess, firebaseRe
         </div>
 
         <p className="mt-8 text-sm text-slate-500">
-          Guest mode: no account needed. Your privacy is respected.
+          Guest mode available. No account needed to get started.
         </p>
       </motion.div>
 
