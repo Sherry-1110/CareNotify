@@ -616,7 +616,7 @@ export default function Step5Completion({
                 onClick={onNewMessage}
                 className="w-full py-4 px-4 rounded-2xl bg-gradient-primary text-white font-medium shadow-soft border border-white/20 hover:shadow-lg transition-shadow"
               >
-                New Message
+                Share With Someone Else
               </motion.button>
             </div>
           )}
