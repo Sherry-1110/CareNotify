@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Check, FlaskConical, Gift, Users, MessageCircle, Phone, Sparkles } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, FlaskConical, Gift, Users, MessageCircle, Phone, Sparkles, Info } from 'lucide-react'
 import type { FormState } from '../App'
 import HelpMeDecideModal from './HelpMeDecideModal'
 
@@ -82,6 +82,7 @@ export default function Step2MessageEditor({
   const [flowIndex, setFlowIndex] = useState(PAGE_FLOW.indexOf(initialPage))
   const [hasInteractedWithStiSelection, setHasInteractedWithStiSelection] = useState(false)
   const [showHelpMeDecideModal, setShowHelpMeDecideModal] = useState(false)
+  const [showPartnerInfoWhyModal, setShowPartnerInfoWhyModal] = useState(false)
 
   const popupStep = PAGE_FLOW[flowIndex]
 
@@ -172,6 +173,14 @@ export default function Step2MessageEditor({
                   <Users className="w-5 h-5 text-calm-600 shrink-0" />
                   <span>Who would you like to send this to?</span>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPartnerInfoWhyModal(true)}
+                  className="mt-2 inline-flex items-center gap-1 text-xs text-calm-700 hover:text-calm-800 transition-colors"
+                >
+                  <Info className="w-3.5 h-3.5" />
+                  <span>why we need this information</span>
+                </button>
                 <input
                   type="text"
                   value={form.partnerName}
@@ -585,6 +594,34 @@ export default function Step2MessageEditor({
             onNext()
           }}
         />
+      )}
+
+      {showPartnerInfoWhyModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-6"
+          onClick={() => setShowPartnerInfoWhyModal(false)}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 8 }}
+            transition={{ duration: 0.16 }}
+            onClick={(event) => event.stopPropagation()}
+            className="w-full max-w-sm rounded-3xl border border-white/60 bg-white p-5 shadow-xl"
+          >
+            <h4 className="text-base font-semibold text-slate-800">Why we need this information</h4>
+            <p className="mt-3 text-sm text-slate-600">
+              We need this to provide the most accurate message solution to your partner. This data is not shared with any entity outside of CareNotify.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowPartnerInfoWhyModal(false)}
+              className="mt-5 w-full rounded-2xl bg-gradient-primary py-3 text-sm font-medium text-white"
+            >
+              Got it
+            </button>
+          </motion.div>
+        </div>
       )}
     </div>
   )
