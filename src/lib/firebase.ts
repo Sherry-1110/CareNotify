@@ -6,7 +6,6 @@ import {
   createUserWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
-  OAuthProvider,
   updateProfile,
   type Auth,
   type User,
@@ -36,10 +35,6 @@ export function initFirebase() {
   return null
 }
 
-export function getFirebaseAuth(): Auth | null {
-  return auth ?? null
-}
-
 export function getFirebaseDb(): Firestore | null {
   return db ?? null
 }
@@ -53,12 +48,6 @@ export async function signInAsGuest() {
 export async function signInWithEmail(email: string, password: string) {
   if (!auth) return null
   const { user } = await signInWithEmailAndPassword(auth, email, password)
-  return user
-}
-
-export async function signUpWithEmail(email: string, password: string) {
-  if (!auth) return null
-  const { user } = await createUserWithEmailAndPassword(auth, email, password)
   return user
 }
 
@@ -94,12 +83,3 @@ export async function signInWithGoogle() {
   const { user } = await signInWithPopup(auth, provider)
   return user
 }
-
-export async function signInWithApple() {
-  if (!auth) return null
-  const provider = new OAuthProvider('apple.com')
-  const { user } = await signInWithPopup(auth, provider)
-  return user
-}
-
-export { app, auth, db }

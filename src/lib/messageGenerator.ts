@@ -253,11 +253,6 @@ Output only the final message text.`,
   return message
 }
 
-export async function generateMessageFromForm(form: FormState): Promise<string> {
-  const result = await generateMessageAndStyleFromForm(form)
-  return result.message
-}
-
 export type MessageWithStyle = {
   message: string
   attachmentStyle: string

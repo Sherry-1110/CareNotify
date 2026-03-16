@@ -4,7 +4,7 @@ import { initFirebase, signInAsGuest } from './lib/firebase'
 import { logProgress } from './lib/logging'
 import Step1Auth from './steps/Step1Auth'
 import Step2MessageEditor from './steps/Step2MessageEditor'
-import Step5Completion from './steps/Step5Completion'
+import Step5Completion from './steps/Step3Completion'
 
 export type FormState = {
   step: 1 | 2 | 3 | 4 | 5
